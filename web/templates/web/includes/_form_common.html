@@ -1,0 +1,64 @@
+<div class="mb-3 col-md-6">
+  <label for="orderCosts" class="form-label">Затраты на пополнение</label>
+  <input type="number" min="0" class="form-control" id="orderCosts" placeholder="параметр A"
+         name="orderCosts" required inputmode="decimal" step="any">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="storageCosts" class="form-label">Затраты на хранение</label>
+  <input type="number" min="0" class="form-control" id="storageCosts" placeholder="параметр I"
+         name="storageCosts" required inputmode="decimal" step="any">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="deliveryTime" class="form-label">Время доставки</label>
+  <input type="number" min="0" class="form-control" id="deliveryTime" placeholder="в днях"
+         name="deliveryTime" required inputmode="numeric">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="delayTime" class="form-label">Возможная задержка</label>
+  <input type="number" min="0" class="form-control" id="delayTime" placeholder="в днях" name="delayTime"
+         required inputmode="numeric">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="delayProbability" class="form-label">Вероятность задержки</label>
+  <input type="range" class="form-range" id="delayProbability" min="0" max="1" step="0.01" value="0"
+         name="delayProbability" required>
+</div>
+<div class="mb-3 col-md-6">
+  <label for="delayDays" class="form-label">Задержка поставок</label>
+  <input type="text" pattern="[0-9,]*" class="form-control" id="delayDays"
+         placeholder="через запятую"
+         name="delayDays" autocomplete="off">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="initialStock" class="form-label">Начальный запас</label>
+  <input type="number" class="form-control" id="initialStock" placeholder="любое значение"
+         name="initialStock" required inputmode="decimal" step="any">
+</div>
+
+<div class="mb-3 col-md-6">
+  <label for="deficitLosses" class="form-label">Потери от дефицита</label>
+  <input type="number" class="form-control" id="deficitLosses" placeholder="больше нуля"
+         name="deficitLosses" step="any" min="0.000000000000001" {% if is_classic %}disabled{% endif %}
+         inputmode="decimal">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="avgDailyConsumption" class="form-label">Среднесуточное потребление</label>
+  <input type="number" class="form-control" id="avgDailyConsumption" placeholder="отгрузка"
+         name="avgDailyConsumption" step="any" {% if is_classic %}disabled{% endif %} autocomplete="off"
+         inputmode="decimal">
+</div>
+<div class="mb-3 col-md-6">
+  <label for="avgDailyConsumptionD" class="form-label">Среднесуточное поступление</label>
+  <input type="number" class="form-control" id="avgDailyConsumptionD" placeholder="оприходование"
+         name="avgDailyConsumptionD" step="any" {% if is_classic %}disabled{% endif %} autocomplete="off"
+         inputmode="decimal">
+</div>
+
+<div class="mb-3">
+  <label for="consumptionDataset" class="form-label">Потребность</label>
+  <textarea class="form-control" id="consumptionDataset" rows="5"
+            placeholder="123.45
+67
+234.67" name="consumptionDataset"
+            required style="resize: none"></textarea>
+</div>

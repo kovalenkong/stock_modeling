@@ -1,0 +1,446 @@
+{% extends 'web/base.html' %}
+
+{% block title %}
+  Модели управления запасами
+{% endblock %}
+{% block header %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block content %}
+  <style>
+      @media screen and (min-width: 768px) {
+          .overflow-navbar {
+              overflow-y: auto;
+              max-height: 90vh;
+          }
+      }
+  </style>
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block pb-3 mb-1">
+        {% include 'web/includes/form_classic.html' %}
+      </nav>
+      <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4">
+        {% include 'web/includes/chart.html' %}
+      </main>
+    </div>
+  </div>
+
+  {% include 'web/includes/modal_datasets.html' %}
+
+  <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
+          aria-controls="offcanvasScrolling">Enable body scrolling
+  </button>
+
+  <style>
+  .docs_help code {
+      font-weight: bold;
+  }
+  .docs_help pre {
+      overflow-x: visible;
+      overflow-wrap: break-word;
+      color: #2c2c2c;
+      background-color: #aeaeae;
+  }
+  .docs_help pre>code {
+      font-weight: normal;
+  }
+  </style>
+
+  <div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+       id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Справка по фреймворку</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body docs_help">
+      {{ author_docs|safe }}
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"
+          integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+          integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+      const MODEL_TYPE_CLASSIC = 'classic'
+      const MODEL_TYPE_AUTHOR = 'author'
+      let MODEL_TYPE = MODEL_TYPE_CLASSIC
+      // form elements
+      const formClassicModel = document.getElementsByTagName('form')[0]
+      const groupModelTypeRadio = document.getElementById('modelTypeGroup')
+      const modelType = document.getElementById('modelType')
+      const modification = document.getElementById('modification')
+      const orderCosts = document.getElementById('orderCosts')
+      const storageCosts = document.getElementById('storageCosts')
+      const deliveryTime = document.getElementById('deliveryTime')
+      const delayTime = document.getElementById('delayTime')
+      const initialStock = document.getElementById('initialStock')
+      const delayProbability = document.getElementById('delayProbability')
+      const delayDays = document.getElementById('delayDays')
+      // optional form fields
+      const deficitLoss = document.getElementById('deficitLosses')
+      const dInput = document.getElementById('avgDailyConsumption')
+      const sInput = document.getElementById('avgDailyConsumptionD')
+      const consumption = document.getElementById('consumptionDataset')
+      // autor models
+      const formulaPointRefill = document.getElementById('formulaPointRefill')
+      const formulaOrderSize = document.getElementById('formulaOrderSize')
+      const formulaScore = document.getElementById('formulaScore')
+
+      // работа с графиком
+      const btnDownloadChart = document.getElementById('btnDownloadChart')
+      const btnResetZoom = document.getElementById('btnResetZoom')
+      const btnDownloadExcel = document.getElementById('btnDownloadExcel')
+      const btnClearForm = document.getElementById('btnClearForm')
+      const infoDiv = document.getElementById('infoDiv')
+
+      // для tooltip графика (словарь)
+      let outcomeOrdersCount
+      let incomeOrdersCount
+      // для загрузки
+      let lastRequestParams
+
+      const consumptionRegex = /^(\d+[.,]?\d*\n)*\d+.?\d*$/
+
+      const modalListDatasets = document.getElementById('listDatasets')
+      const listDatasetsTableBody = document.getElementById('listDatasetsTableBody')
+      modalListDatasets.addEventListener('shown.bs.modal', () => {
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              listDatasetsTableBody.textContent = ''
+              let response = JSON.parse(xhr.response)
+              for (let row of response) {
+                  let el = document.createElement('tr')
+
+                  let id = document.createElement('td')
+                  id.textContent = row['id']
+                  let dtCreated = document.createElement('td')
+                  dtCreated.textContent = row['dt_created']
+                  let dtEdited = document.createElement('td')
+                  dtEdited.textContent = row['dt_edited']
+                  let author = document.createElement('td')
+                  author.textContent = row['author']['email']
+                  let btnChooseDataset = document.createElement('button')
+                  btnChooseDataset.className = 'btn btn-outline-primary'
+                  btnChooseDataset.textContent = 'Выбрать'
+                  btnChooseDataset.onclick = e => {
+                      let xhr = new XMLHttpRequest()
+                      xhr.onload = () => {
+                          let resp = JSON.parse(xhr.response)
+                      }
+                      xhr.onerror = err => {
+                          console.error(err)
+                      }
+                      console.log(e)
+                      console.log(row['id'])
+                      $('#listDatasets').modal('hide')
+                  }
+                  let tdAction = document.createElement('td')
+                  tdAction.appendChild(btnChooseDataset)
+
+                  el.appendChild(id)
+                  el.appendChild(dtCreated)
+                  el.appendChild(dtEdited)
+                  el.appendChild(author)
+                  el.appendChild(tdAction)
+                  listDatasetsTableBody.appendChild(el)
+              }
+              console.log(xhr.response)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+          }
+          xhr.open('get', '/api/v1/datasets/')
+          xhr.send()
+      })
+
+      formClassicModel.onsubmit = e => {
+          e.preventDefault()
+          if (!formClassicModel.checkValidity()) {
+              return
+          }
+          if (!consumptionRegex.test(consumption.value)) {
+              showError('Заполните данные потребления в указанном формате\n' +
+                  'Каждое значение с новой строки, разделитель точка или запятая')
+              return
+          }
+          buildModel()
+      }
+
+      delayProbability.oninput = changeTextLabelForDelayProbability
+      changeTextLabelForDelayProbability()
+
+      function changeTextLabelForDelayProbability() {
+          delayProbability.labels[0].textContent = `Вероятность задержки: ${Math.round(delayProbability.value * 100).toFixed(0)}%`
+      }
+
+      modification.onchange = () => {
+          deficitLoss.disabled = modification.value !== 'lost_sales'
+          deficitLoss.required = modification.value === 'lost_sales'
+
+          sInput.disabled = modification.value !== 'gradual_replenishment'
+          sInput.required = modification.value === 'gradual_replenishment'
+
+          dInput.disabled = modification.value !== 'gradual_replenishment'
+          dInput.required = modification.value === 'gradual_replenishment'
+      }
+      groupModelTypeRadio.oninput = e => {
+          let modelGroupClassic = document.getElementById('modelGroupClassic')
+          let modelGroupAuthor = document.getElementById('modelGroupAuthor')
+          if (modelGroupClassic.checked) {
+              MODEL_TYPE = MODEL_TYPE_CLASSIC
+              document.getElementById('divClassicModels').hidden = false
+              document.getElementById('divAuthorModels').hidden = true
+              formulaPointRefill.required = false
+              formulaOrderSize.required = false
+
+          } else {
+              MODEL_TYPE = MODEL_TYPE_AUTHOR
+              document.getElementById('divClassicModels').hidden = true
+              document.getElementById('divAuthorModels').hidden = false
+              formulaPointRefill.required = true
+              formulaOrderSize.required = true
+          }
+      }
+      delayDays.oninput = e => {
+          e.preventDefault()
+          if (delayDays.value !== '') {
+              delayProbability.value = 0
+              changeTextLabelForDelayProbability()
+          }
+          delayProbability.disabled = delayDays.value !== '';
+      }
+
+      btnDownloadChart.onclick = () => {
+          let im = mainChart.toBase64Image('image/png', 1)
+          let a = document.createElement('a')
+          a.href = im
+          a.download = 'chart.png'
+          a.click()
+      }
+      btnDownloadExcel.onclick = downloadExcelFile
+      btnClearForm.onclick = () => {
+          for (let el of formClassicModel.elements) {
+              el.value = ''
+          }
+          changeTextLabelForDelayProbability()
+      }
+
+      btnResetZoom.onclick = () => {
+          mainChart.resetZoom()
+      }
+
+      const zoomOptions = {
+          pan: {
+              enabled: true,
+              mode: 'x',
+              modifierKey: 'ctrl',
+          },
+          zoom: {
+              drag: {
+                  enabled: true
+              },
+              wheel: {
+                  enabled: true,
+              },
+              mode: 'x',
+          }
+      }
+      const balanceLine = {
+          label: 'Остаток',
+          //pointRadius: 0,
+          pointRadius: 2,
+          pointHoverRadius: 10,
+          backgroundColor: 'rgba(133,192,238, 0.5)',
+          borderColor: 'rgb(133,192,238)',
+      }
+      const incomeOrderLine = {
+          type: 'bar',
+          label: 'Приход',
+          backgroundColor: '#8bef8b',
+          tooltip: {
+              callbacks: {
+                  beforeLabel: function (context) {
+                      return `Приход №${incomeOrdersCount[context.dataIndex]}`
+                  }
+              }
+          }
+      }
+      const outcomeOrderLine = {
+          type: 'bar',
+          label: 'Заявка',
+          backgroundColor: '#e8ea62',
+          tooltip: {
+              callbacks: {
+                  beforeLabel: function (context) {
+                      return `Заявка №${outcomeOrdersCount[context.dataIndex]}`
+                  }
+              }
+          }
+      }
+      const consumptionLine = {
+          label: 'Потребление',
+          pointRadius: 0,
+          backgroundColor: 'rgba(230,195,250,0.5)',
+          borderColor: 'rgb(230,195,250)',
+          stepped: 'middle',
+      }
+      const chartCtx = document.getElementById('mainChart').getContext('2d');
+      const mainChart = new Chart(chartCtx, {
+          type: 'line',
+          labels: [1, 2, 3],
+          data: {
+              datasets: [
+                  balanceLine,
+                  consumptionLine,
+                  incomeOrderLine,
+                  outcomeOrderLine,
+              ]
+          },
+          options: {
+              animations: {
+                  radius: {
+                      duration: 400,
+                      easing: 'linear',
+                      loop: (context) => context.active
+                  }
+              },
+              plugins: {
+                  zoom: zoomOptions,
+              }
+          }
+      });
+
+      function buildModel() {
+          let consumptionData = consumption.value.replaceAll(',', '.').split('\n').map(Number)
+
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              if (xhr.status !== 200) {
+                  console.error(xhr.responseText)
+                  showError(`${xhr.status}\n${xhr.responseText}`)
+                  return
+              }
+              let resp = JSON.parse(xhr.response)
+              updateChart(mainChart, resp)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+              showError(`Ошибка сервера\n${xhr.responseText}`)
+          }
+          xhr.open('POST', '/api/v1/build/classic/')
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.setRequestHeader('X-CSRFToken', formClassicModel['csrfmiddlewaretoken'].value)
+          let data = {
+              model_type: modelType.value,
+              modification: modification.value,
+              consumption: consumptionData,
+              order_costs: orderCosts.value,
+              storage_costs: storageCosts.value,
+              delivery_time: deliveryTime.value,
+              delay_time: delayTime.value,
+              initial_stock: initialStock.value,
+              delay_probability: delayProbability.value,
+              delay_days: delayDays.value.split(',').map(Number),
+          }
+          if (deficitLoss.value !== '') {
+              data['deficit_losses'] = deficitLoss.value
+          }
+          if (sInput.value !== '') {
+              data['s'] = sInput.value
+          }
+          if (dInput.value !== '') {
+              data['d'] = dInput.value
+          }
+          lastRequestParams = data
+          xhr.send(JSON.stringify(data))
+      }
+
+      function updateChart(chart, responseDict) {
+          let sidebarMenu = document.getElementById('sidebarMenu')
+          if (!sidebarMenu.classList.contains('overflow-navbar')) {
+              sidebarMenu.classList.add('overflow-navbar')
+              //document.body.animate({scrollTop: 1200}, 50)
+              //document.body.scrollTop = 0
+              window.scroll({
+                  top: 0,
+                  behavior: 'smooth'
+              });
+          }
+          chart.data.labels = responseDict['labels']
+          infoDiv.innerHTML = responseDict['info']
+          btnDownloadChart.disabled = false
+          btnDownloadExcel.disabled = false
+          btnResetZoom.disabled = false
+          let balance_response = responseDict['balance']
+          let income_order = responseDict['income_order']
+          let outcome_order = responseDict['outcome_order']
+          let consumption_response = responseDict['consumption']
+
+          balanceLine.data = balance_response
+          consumptionLine.data = consumption_response
+          incomeOrderLine.data = income_order
+          outcomeOrderLine.data = outcome_order
+          /*
+          balanceLine.fill = {
+              target: 'origin',
+              above: '#9ffa9d',
+              below: '#ef4f4f'
+          }
+           */
+
+          incomeOrdersCount = {}
+          let idx = 1
+          for (let i = 0; i < income_order.length; i++) {
+              if (income_order[i] > 0) {
+                  incomeOrdersCount[i] = idx
+                  idx++
+              }
+          }
+
+          outcomeOrdersCount = {}
+          idx = 1
+          for (let i = 0; i < outcome_order.length; i++) {
+              if (outcome_order[i] > 0) {
+                  outcomeOrdersCount[i] = idx
+                  idx++
+              }
+          }
+          chart.update()
+      }
+
+      function downloadExcelFile() {
+          let xhr = new XMLHttpRequest()
+          xhr.responseType = 'blob'
+
+          xhr.onload = () => {
+              if (xhr.status !== 200) {
+                  console.error(xhr.response)
+                  showError(`${xhr.status}\n${xhr.responseText}`)
+                  return
+              }
+              let file = new Blob([xhr.response], {type: 'application/vnd.ms-excel'})
+              let fileUrl = window.URL.createObjectURL(file)
+              let a = document.createElement("a");
+              a.href = fileUrl;
+              a.download = 'res.xlsx';
+              a.click()
+          }
+          xhr.onerror = err => {
+              console.error(err)
+          }
+          xhr.open('POST', '/inventory-models/download')
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.send(JSON.stringify(lastRequestParams))
+      }
+  </script>
+{% endblock %}

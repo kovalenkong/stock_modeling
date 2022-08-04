@@ -1,0 +1,215 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block title %}
+  Классические модели
+{% endblock %}
+{% block header %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block pb-3 mb-1">
+        {% include 'web/includes/form_classic.html' %}
+      </nav>
+      <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4">
+        {% include 'web/includes/chart.html' %}
+      </main>
+    </div>
+  </div>
+
+  {% include 'web/includes/modal_datasets.html' %}
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"
+          integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+          integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="{% static 'js/chart_draw.js' %}"></script>
+  <script>
+      const MODEL_TYPE_CLASSIC = 'classic'
+      const MODEL_TYPE_AUTHOR = 'author'
+      let MODEL_TYPE = MODEL_TYPE_CLASSIC
+      // form elements
+      const form = document.getElementsByTagName('form')[0]
+      const formModelType = document.getElementById('modelType')
+      const formModification = document.getElementById('modification')
+      const formOrderCosts = document.getElementById('orderCosts')
+      const formStorageCosts = document.getElementById('storageCosts')
+      const formDeliveryTime = document.getElementById('deliveryTime')
+      const formDelayTime = document.getElementById('delayTime')
+      const formInitialStock = document.getElementById('initialStock')
+      const formDelayProbability = document.getElementById('delayProbability')
+      const formDelayDays = document.getElementById('delayDays')
+      // optional form fields
+      const formDeficitLoss = document.getElementById('deficitLosses')
+      const formDInput = document.getElementById('avgDailyConsumption')
+      const formSInput = document.getElementById('avgDailyConsumptionD')
+      const formConsumption = document.getElementById('consumptionDataset')
+
+      // работа с графиком
+      const btnDownloadChart = document.getElementById('btnDownloadChart')
+      const btnResetZoom = document.getElementById('btnResetZoom')
+      const btnDownloadExcel = document.getElementById('btnDownloadExcel')
+      const btnClearForm = document.getElementById('btnClearForm')
+      const infoDiv = document.getElementById('infoDiv')
+
+      // для tooltip графика (словарь)
+      let outcomeOrdersCount
+      let incomeOrdersCount
+      // для загрузки
+      let lastRequestParams
+
+      const consumptionRegex = /^(\d+[.,]?\d*\n)*\d+.?\d*$/
+
+      // datasets modal
+      const modalListDatasets = document.getElementById('listDatasets')
+      const listDatasetsTableBody = document.getElementById('listDatasetsTableBody')
+      modalListDatasets.addEventListener('shown.bs.modal', () => {
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              listDatasetsTableBody.textContent = ''
+              let response = JSON.parse(xhr.response)
+              for (let row of response) {
+                  let el = document.createElement('tr')
+
+                  let id = document.createElement('td')
+                  id.textContent = row['id']
+                  let dtCreated = document.createElement('td')
+                  dtCreated.textContent = row['dt_created']
+                  let dtEdited = document.createElement('td')
+                  dtEdited.textContent = row['dt_edited']
+                  let author = document.createElement('td')
+                  author.textContent = row['author']['email']
+                  let btnChooseDataset = document.createElement('button')
+                  btnChooseDataset.className = 'btn btn-outline-primary'
+                  btnChooseDataset.textContent = 'Выбрать'
+                  btnChooseDataset.onclick = e => {
+                      let xhr = new XMLHttpRequest()
+                      xhr.onload = () => {
+                          let resp = JSON.parse(xhr.response)
+                      }
+                      xhr.onerror = err => {
+                          console.error(err)
+                      }
+                      console.log(e)
+                      console.log(row['id'])
+                      $('#listDatasets').modal('hide')
+                  }
+                  let tdAction = document.createElement('td')
+                  tdAction.appendChild(btnChooseDataset)
+
+                  el.appendChild(id)
+                  el.appendChild(dtCreated)
+                  el.appendChild(dtEdited)
+                  el.appendChild(author)
+                  el.appendChild(tdAction)
+                  listDatasetsTableBody.appendChild(el)
+              }
+              console.log(xhr.response)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+          }
+          xhr.open('get', '/api/v1/datasets/')
+          xhr.send()
+      })
+
+      form.onsubmit = e => {
+          e.preventDefault()
+          if (!form.checkValidity()) {
+              return
+          }
+          if (!consumptionRegex.test(formConsumption.value)) {
+              showError('Заполните данные потребления в указанном формате\n' +
+                  'Каждое значение с новой строки, разделитель точка или запятая')
+              return
+          }
+          buildModel()
+      }
+
+      // delay probability events
+      formDelayProbability.oninput = changeTextLabelForDelayProbability
+      changeTextLabelForDelayProbability()
+
+      function changeTextLabelForDelayProbability() {
+          formDelayProbability.labels[0].textContent = `Вероятность задержки: ${Math.round(formDelayProbability.value * 100).toFixed(0)}%`
+      }
+
+      // modification type changes
+      formModification.onchange = () => {
+          formDeficitLoss.disabled = formModification.value !== 'lost_sales'
+          formDeficitLoss.required = formModification.value === 'lost_sales'
+
+          formSInput.disabled = formModification.value !== 'gradual_replenishment'
+          formSInput.required = formModification.value === 'gradual_replenishment'
+
+          formDInput.disabled = formModification.value !== 'gradual_replenishment'
+          formDInput.required = formModification.value === 'gradual_replenishment'
+      }
+
+      // delay days field changes
+      formDelayDays.oninput = e => {
+          e.preventDefault()
+          if (formDelayDays.value !== '') {
+              formDelayProbability.value = 0
+              changeTextLabelForDelayProbability()
+          }
+          formDelayProbability.disabled = formDelayDays.value !== '';
+      }
+
+      function buildModel() {
+          let consumptionData = formConsumption.value.replaceAll(',', '.').split('\n').map(Number)
+
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              if (xhr.status !== 200) {
+                  console.error(xhr.responseText)
+                  showError(`${xhr.status}\n${xhr.responseText}`)
+                  return
+              }
+              let resp = JSON.parse(xhr.response)
+              updateChart(mainChart, resp)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+              showError(`Ошибка сервера\n${xhr.responseText}`)
+          }
+          xhr.open('POST', '/api/v1/build/classic/')
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
+          let data = {
+              model_type: formModelType.value,
+              modification: formModification.value,
+              consumption: consumptionData,
+              order_costs: formOrderCosts.value,
+              storage_costs: formStorageCosts.value,
+              delivery_time: formDeliveryTime.value,
+              delay_time: formDelayTime.value,
+              initial_stock: formInitialStock.value,
+              delay_probability: formDelayProbability.value,
+              delay_days: formDelayDays.value.split(',').map(Number),
+          }
+          if (formDeficitLoss.value !== '') {
+              data['deficit_losses'] = formDeficitLoss.value
+          }
+          if (formSInput.value !== '') {
+              data['s'] = formSInput.value
+          }
+          if (formDInput.value !== '') {
+              data['d'] = formDInput.value
+          }
+          lastRequestParams = data
+          xhr.send(JSON.stringify(data))
+      }
+
+  </script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="{% static 'icon.png' %}">
+  <title>{% block title %}Управление запасами{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+  {% block header %}
+  {% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-light">
+  <div class="container-fluid">
+    {% with request.resolver_match.view_name as view_name %}
+      <a class="navbar-brand" href="/">
+        <img src="{% static 'icon.png' %}" alt="" width="30" height="30"
+             class="d-inline-block align-text-top">
+        Запасы
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+              aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link {% if view_name == 'datasets_list' %}active{% endif %}" aria-current="page"
+               href="{% url 'datasets_list' %}">Датасеты</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if view_name == 'models_classic' %}active{% endif %}"
+               href="{% url 'models_classic' %}">Классические модели</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if view_name == 'models_author_list' %}active{% endif %}"
+               href="{% url 'models_author_list' %}">Авторские модели</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if view_name == 'models_author_new' %}active{% endif %}"
+               href="{% url 'models_author_new' %}">Создать модель</a>
+          </li>
+          {% comment %}<li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Dropdown link
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#">Action</a></li>
+              <li><a class="dropdown-item" href="#">Another action</a></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            </ul>
+          </li>{% endcomment %}
+        </ul>
+      </div>
+    {% endwith %}
+  </div>
+</nav>
+
+{% block content %}
+{% endblock %}
+
+<style>
+    html {
+        position: relative;
+        min-height: 100%;
+        padding-bottom: 20px;
+    }
+
+    body {
+        margin-bottom: 120px;
+    }
+
+    footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 120px;
+    }
+</style>
+
+<footer class="footer border-top text-center py-3 my-1">
+  {#<footer class="footer border-top text-center fixed-bottom">#}
+  <div class="container">
+    {#    <a href="#" class="link-secondary" target="_blank">Ададуров Алексей</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Бурмистрова Анна</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Великжанин Иван</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Глухов Никита</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Жердева София</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Коваленко Николай</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Куликов Лев</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Орлянская Дарья</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Скрипец Софья</a>,#}
+    {#    <a href="#" class="link-secondary" target="_blank">Чершенцев Даниил</a>#}
+    {#    <br>#}
+    Copyright &copy; 2022
+  </div>
+</footer>
+
+<div class="modal" tabindex="-1" id="modalError">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ошибка</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modalErrorBodyText">Modal body text goes here.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"
+        integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js"
+        integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy"
+        crossorigin="anonymous"></script>
+<script>
+    const modalError = new bootstrap.Modal(document.getElementById('modalError'), {backdrop: true})
+    const modalErrorBodyText = document.getElementById('modalErrorBodyText')
+
+    function showError(text) {
+        modalErrorBodyText.innerText = text
+        modalError.show()
+    }
+</script>
+
+{% block scripts %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends 'web/base.html' %}
+
+{% block title %}
+  Датасеты
+{% endblock %}
+
+{% block content %}
+  <div class="container pt-3">
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Автор</th>
+        <th scope="col">Создан</th>
+        <th scope="col">Обновлен</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% if datasets %}
+        {% for row in datasets %}
+          <tr>
+            <th scope="row">{{ row.id }}</th>
+            <td>{{ row.author.email }}</td>
+            <td>{{ row.dt_created|date:"d/m/Y G:i:s" }}</td>
+            <td>{{ row.dt_edited|date:"d/m/Y G:i:s" }}</td>
+          </tr>
+        {% endfor %}
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
