@@ -4,5 +4,122 @@
   Авторские модели
 {% endblock %}
 
+{% block header %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+{% endblock %}
+
 {% block content %}
+  {% csrf_token %}
+  <div class="container pt-3">
+    {% include 'web/includes/search_form.html' %}
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Формула точки пополнения</th>
+        <th scope="col">Формула размера заказа</th>
+        <th scope="col">Описание</th>
+        <th scope="col">Автор</th>
+        <th scope="col">Создан</th>
+        <th scope="col">Обновлен</th>
+        <th scope="col">Публичная</th>
+        <th scope="col">Действие</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for row in algo %}
+        <tr id="table-row-{{ row.pk }}">
+          <th scope="row">{{ row.id }}</th>
+          <td>{{ row.formula_point_refill|truncatechars:"25" }}</td>
+          <td>{{ row.formula_order_size|truncatechars:"25" }}</td>
+          {% if row.description %}
+            {% if row.description|length > 25 %}
+              <td data-bs-toggle="tooltip" data-bs-placement="right"
+                  data-bs-title="{{ row.description|truncatechars:"100"|default:"-" }}">{{ row.description|truncatechars:"25"|default:"-" }}</td>
+            {% else %}
+              <td>{{ row.description }}</td>
+            {% endif %}
+          {% else %}
+            <td>-</td>
+          {% endif %}
+          <td>{{ row.author.email }}</td>
+          <td>{{ row.dt_created|date:"d/m/Y G:i:s" }}</td>
+          <td>{{ row.dt_edited|date:"d/m/Y G:i:s" }}</td>
+          <td>{% if row.is_public %}<i class="bi bi-check-circle-fill link-success"></i>{% else %}
+            <i class="bi bi-x-circle link-danger"></i>{% endif %}</td>
+          <td>
+            <div class="dropdown-center">
+              <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                      aria-expanded="false">
+                Действие
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'models_author_view' pk=row.pk %}">Попробовать</a></li>
+                {% if request.user.is_authenticated and row.author == request.user %}
+                  <li>
+                    <button class="dropdown-item link-danger" onclick="openModalDelete({{ row.pk }})">Удалить</button>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <p>Упс! Ничего не нашлось :(</p>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="modalDeleteAlgorithm" tabindex="-1" aria-labelledby="modalDeleteAlgorithmLabel"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalDeleteAlgorithmLabel">Удалить</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalDeleteAlgorithmBody">
+          Вы действительно хоти
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+          <button type="button" class="btn btn-danger" id="modalDeleteAlgorithmConfirm">Да</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+      const modalDeleteBody = document.getElementById('modalDeleteAlgorithmBody')
+      const modalDeleteAlgorithmConfirm = document.getElementById('modalDeleteAlgorithmConfirm')
+      const csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0]
+
+      function openModalDelete(id) {
+          console.log(id)
+          modalDeleteBody.textContent = `Вы действительно хотите удалить алгоритм ${id}?`
+          modalDeleteAlgorithmConfirm.onclick = e => {
+              let xhr = new XMLHttpRequest()
+              xhr.onload = () => {
+                  document.getElementById(`table-row-${id}`).remove()
+                  console.log(xhr.response)
+              }
+              xhr.onerror = err => {
+                  console.error(err)
+              }
+              xhr.open('DELETE', `/api/v1/algorithms/${id}`)
+              xhr.setRequestHeader('X-CSRFToken', csrfToken.value)
+              xhr.send()
+              $('#modalDeleteAlgorithm').modal('hide')
+          }
+          $('#modalDeleteAlgorithm').modal('show')
+
+      }
+  </script>
+
 {% endblock %}

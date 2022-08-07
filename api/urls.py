@@ -6,6 +6,7 @@ from . import views
 router = DefaultRouter()
 
 router.register('datasets', views.DatasetView, 'datasets')
+router.register('algorithms', views.AlgorithmView, 'algorithms')
 
 urlpatterns = [
     path('', include(router.urls)),

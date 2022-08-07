@@ -1,0 +1,23 @@
+{% extends 'web/base.html' %}
+
+{% block title %}
+  Новый датасет
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <form method="post">
+    {% csrf_token %}
+      <div class="row">
+        {% for field in form %}
+          <div class="mb-3 col-md-{% if field.widget_type == 'textarea' %}12{% else %}6{% endif %}">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+          </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+    </form>
+
+  </div>
+{% endblock %}

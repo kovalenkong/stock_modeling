@@ -88,9 +88,6 @@ def eval_keyword(node: ast.keyword, context: dict) -> (str, Any):
 
 
 def eval_subscript(node: ast.Subscript, context: dict):
-    # for i in dir(node):
-    #     if not i.startswith('_'):
-    #         print(i, getattr(node, i))
     slice_ = eval_node(node.slice, context)
     val = eval_node(node.value, context)
     return val[slice_]

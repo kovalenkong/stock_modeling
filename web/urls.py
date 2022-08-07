@@ -13,4 +13,8 @@ urlpatterns = [
     path('models/author/<int:pk>/', views.models_author_view, name='models_author_view'),
 
     path('datasets/', views.datasets_list, name='datasets_list'),
+    path('datasets/new/', views.datasets_new, name='datasets_new'),
+    path('datasets/<int:pk>/edit/', views.datasets_edit, name='datasets_edit'),
+
+    path('docs/', views.docs, name='docs'),
 ]

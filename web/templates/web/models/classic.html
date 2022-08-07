@@ -34,6 +34,7 @@
           integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="{% static 'js/chart_draw.js' %}"></script>
+  <script src="{% static 'js/common_actions.js' %}" type="text/javascript"></script>
   <script>
       const MODEL_TYPE_CLASSIC = 'classic'
       const MODEL_TYPE_AUTHOR = 'author'
@@ -70,59 +71,6 @@
 
       const consumptionRegex = /^(\d+[.,]?\d*\n)*\d+.?\d*$/
 
-      // datasets modal
-      const modalListDatasets = document.getElementById('listDatasets')
-      const listDatasetsTableBody = document.getElementById('listDatasetsTableBody')
-      modalListDatasets.addEventListener('shown.bs.modal', () => {
-          let xhr = new XMLHttpRequest()
-          xhr.onload = () => {
-              listDatasetsTableBody.textContent = ''
-              let response = JSON.parse(xhr.response)
-              for (let row of response) {
-                  let el = document.createElement('tr')
-
-                  let id = document.createElement('td')
-                  id.textContent = row['id']
-                  let dtCreated = document.createElement('td')
-                  dtCreated.textContent = row['dt_created']
-                  let dtEdited = document.createElement('td')
-                  dtEdited.textContent = row['dt_edited']
-                  let author = document.createElement('td')
-                  author.textContent = row['author']['email']
-                  let btnChooseDataset = document.createElement('button')
-                  btnChooseDataset.className = 'btn btn-outline-primary'
-                  btnChooseDataset.textContent = 'Выбрать'
-                  btnChooseDataset.onclick = e => {
-                      let xhr = new XMLHttpRequest()
-                      xhr.onload = () => {
-                          let resp = JSON.parse(xhr.response)
-                      }
-                      xhr.onerror = err => {
-                          console.error(err)
-                      }
-                      console.log(e)
-                      console.log(row['id'])
-                      $('#listDatasets').modal('hide')
-                  }
-                  let tdAction = document.createElement('td')
-                  tdAction.appendChild(btnChooseDataset)
-
-                  el.appendChild(id)
-                  el.appendChild(dtCreated)
-                  el.appendChild(dtEdited)
-                  el.appendChild(author)
-                  el.appendChild(tdAction)
-                  listDatasetsTableBody.appendChild(el)
-              }
-              console.log(xhr.response)
-          }
-          xhr.onerror = err => {
-              console.error(err)
-          }
-          xhr.open('get', '/api/v1/datasets/')
-          xhr.send()
-      })
-
       form.onsubmit = e => {
           e.preventDefault()
           if (!form.checkValidity()) {
@@ -133,7 +81,7 @@
                   'Каждое значение с новой строки, разделитель точка или запятая')
               return
           }
-          buildModel()
+          buildModelClassic()
       }
 
       // delay probability events
@@ -166,7 +114,7 @@
           formDelayProbability.disabled = formDelayDays.value !== '';
       }
 
-      function buildModel() {
+      function buildModelClassic() {
           let consumptionData = formConsumption.value.replaceAll(',', '.').split('\n').map(Number)
 
           let xhr = new XMLHttpRequest()

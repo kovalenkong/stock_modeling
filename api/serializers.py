@@ -2,7 +2,7 @@ import json
 
 from rest_framework import serializers
 
-from core.models import Dataset, User
+from core.models import Dataset, User, Algorithm
 from core.stock_models.config import MODEL_TYPE, MODIFICATION
 
 
@@ -39,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class DatasetListSerializer(serializers.ModelSerializer):
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
     parameters = serializers.JSONField()
 
     class Meta:
@@ -48,9 +48,17 @@ class DatasetListSerializer(serializers.ModelSerializer):
 
 
 class DatasetDetailSerializer(serializers.ModelSerializer):
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
     parameters = serializers.JSONField
 
     class Meta:
         model = Dataset
+        fields = '__all__'
+
+
+class AlgorithmSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Algorithm
         fields = '__all__'

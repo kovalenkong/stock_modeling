@@ -9,9 +9,10 @@ from rest_framework import generics, viewsets
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from core.models import Dataset
+from core.models import Dataset, Algorithm
 from core.stock_models import author
 from core.stock_models.builders import (build_fiv, build_fixed_period,
                                         build_frz, build_minimum_maximum)
@@ -20,7 +21,7 @@ from core.stock_models.errors import ConfigError
 
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AuthorModelSerializer, ClassicModelSerializer,
-                          DatasetDetailSerializer, DatasetListSerializer)
+                          DatasetDetailSerializer, DatasetListSerializer, AlgorithmSerializer)
 
 _model_factory = {
     MODEL_TYPE.FRZ.value: build_frz,
@@ -166,3 +167,15 @@ class DatasetView(viewsets.ModelViewSet):
         if self.action == 'list':
             return DatasetListSerializer
         return DatasetDetailSerializer
+
+
+class AlgorithmView(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
+    serializer_class = AlgorithmSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user if self.request.user.is_authenticated else None
+        return Algorithm.objects.filter(models.Q(is_public=True) | models.Q(author=user))

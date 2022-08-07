@@ -1,58 +1,18 @@
 <form class="row">
   {% csrf_token %}
 
-
-  <div class="mb-3 col-md-12">
-    <label for="formulaPointRefill" class="form-label">Формула нахождения точки пополнения заказа
+  {% for field in form_algo %}
+    <div class="mb-3 col-md-12">
+      <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
       <i class="bi bi-question-circle" role="button" data-bs-toggle="offcanvas"
-         data-bs-target="#offcanvasScrolling"
-         aria-controls="offcanvasScrolling">
+         data-bs-target="#modalDocumentationFramework"
+         aria-controls="modalDocumentationFramework">
       </i>
-    </label>
-    <textarea class="form-control" id="formulaPointRefill" required spellcheck="false"></textarea>
-  </div>
-  <div class="mb-3 col-md-12">
-    <label for="formulaOrderSize" class="form-label">Формула размера заказа
-      <i class="bi bi-question-circle" role="button" data-bs-toggle="offcanvas"
-         data-bs-target="#offcanvasScrolling"
-         aria-controls="offcanvasScrolling">
-      </i>
-    </label>
-    <textarea class="form-control" id="formulaOrderSize" required spellcheck="false"></textarea>
-  </div>
-  <div class="mb-3 col-md-12">
-    <label for="formulaScore" class="form-label">Оценивающая функция
-      <i class="bi bi-question-circle" role="button" data-bs-toggle="offcanvas"
-         data-bs-target="#offcanvasScrolling"
-         aria-controls="offcanvasScrolling">
-      </i>
-    </label>
-    <textarea class="form-control" id="formulaScore"></textarea>
-  </div>
+      {{ field }}
+    </div>
+  {% endfor %}
 
-
-  {% include 'web/includes/_form_common.html' %}
-
-  <div class="d-grid gap-2">
-    <button type="button" class="btn btn-outline-primary" id="btnChooseDataset" data-bs-toggle="modal"
-            data-bs-target="#listDatasets"><i
-            class="bi bi-bar-chart-line"></i>
-      Выбрать датасет
-    </button>
-    <button type="submit" class="btn btn-outline-primary" id="btnBuildGraph"><i
-            class="bi bi-code-slash"></i>
-      Смоделировать
-    </button>
-    <button type="button" class="btn btn-outline-success" id="btnSaveModel"><i class="bi bi-cloud-arrow-up"></i>
-      Сохранить датасет
-    </button>
-    <button type="button" class="btn btn-outline-danger" id="btnClearForm"><i class="bi bi-trash3"></i>
-      Очистить форму
-    </button>
-    <button type="button" class="btn btn-outline-success" id="btnSaveAlgorithm"><i class="bi bi-cloud-arrow-up"></i>
-      Сохранить метод
-    </button>
-  </div>
+  {% include 'web/includes/_form_common.html' with btn_save_algo=True %}
 
 </form>
 
@@ -74,13 +34,48 @@
     }
 </style>
 <div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
-     id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel"
+     id="modalDocumentationFramework" aria-labelledby="modalDocumentationFrameworkLabel"
      style="width: calc(var(--bs-offcanvas-width) + 300px)">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Справка по фреймворку</h5>
+    <h5 class="offcanvas-title" id="modalDocumentationFrameworkLabel">Справка по фреймворку</h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body docs_help">
     {{ author_docs|safe }}
   </div>
 </div>
+
+
+<!-- сохранение алгоритма -->
+<div class="modal fade" id="modalSaveAlgorithm" tabindex="-1" aria-labelledby="modalSaveAlgorithmLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalSaveAlgorithmLabel">Сохранить модель</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        {% with form_algo.instance as instance %}
+          <form>
+            <div class="mb-3">
+              <label for="formFormulaDescription" class="col-form-label">Описание:</label>
+              <textarea class="form-control"
+                        id="formFormulaDescription">{{ instance.description|default_if_none:"" }}</textarea>
+            </div>
+            <div class="mb-3">
+              <input type="checkbox" class="form-check-input" id="formFormulaIsPublic"
+                     {% if instance.is_public %}checked{% endif %}>
+              <label for="formFormulaIsPublic" class="col-form-label orm-check-input-label">Публичная</label>
+            </div>
+          </form>
+        {% endwith %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary" id="btnSaveAlgorithm">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+

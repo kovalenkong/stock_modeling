@@ -34,7 +34,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     username = None
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, verbose_name='Почта')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -52,6 +52,10 @@ class Dataset(models.Model):
         verbose_name='Параметры',
         blank=False, null=False,
         help_text='Параметры модели (используется как json поле)'
+    )
+    description = models.TextField(
+        verbose_name='Описание',
+        blank=True, null=True
     )
     author = models.ForeignKey(
         to=User, on_delete=models.SET_NULL,
@@ -91,7 +95,11 @@ class Algorithm(models.Model):
     formula_score = models.CharField(
         verbose_name='Формула оценивающей метрики',
         max_length=255,
-        blank=False, null=False
+        blank=True, null=True
+    )
+    description = models.TextField(
+        verbose_name='Описание',
+        blank=True, null=True
     )
     is_public = models.BooleanField(
         verbose_name='Публичный',

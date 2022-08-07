@@ -1,10 +1,14 @@
+import json
+from decimal import Decimal
+
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 import markdown
 from markdown.extensions import fenced_code
-from core.stock_models.author import DOC
+from core.stock_models._docs import SHORT_DOC
 from core.models import Dataset, Algorithm
-from web.forms import ClassicModelForm
+from web.forms import ClassicModelForm, AlgorithmForm, DatasetForm
+from markdown.extensions import tables
 from django.db import models
 
 """
@@ -15,12 +19,14 @@ from django.db import models
 /models/author/<int:pk>/ - авторская модель
 /datasets/ - список датасетов
 """
+
+
 def test(request):
     return render(request, 'web/test.html')
 
 
 def index(request):
-    author_docs = markdown.markdown(DOC, extensions=[fenced_code.FencedCodeExtension()])
+    author_docs = markdown.markdown(SHORT_DOC, extensions=[fenced_code.FencedCodeExtension()])
     return render(request, 'web/index.html', {'author_docs': author_docs})
 
 
@@ -32,23 +38,100 @@ def models_classic(request):
 
 
 def models_author_list(request):
-    algo = Algorithm.objects.filter(models.Q(is_public=True) | models.Q(author=request.user)).order_by('-dt_edited')
-    return render(request, 'web/models/author_list.html', {'algo': algo})
+    user = request.user if request.user.is_authenticated else None
+    filters = models.Q(is_public=True) | models.Q(author=user)
+
+    q = request.GET.get('q')
+    if q:
+        filters &= models.Q(description__icontains=q) | models.Q(formula_point_refill__icontains=q) | models.Q(
+            formula_order_size__icontains=q) | models.Q(author__email__icontains=q)
+    algo = Algorithm.objects.filter(filters).order_by('-dt_edited')
+    return render(request, 'web/models/author_list.html', {'algo': algo, 'q': q})
 
 
 @login_required
 def models_author_new(request):
-    author_docs = markdown.markdown(DOC, extensions=[fenced_code.FencedCodeExtension()])
+    author_docs = markdown.markdown(SHORT_DOC, extensions=[fenced_code.FencedCodeExtension(), tables.TableExtension()])
+    form_algo = AlgorithmForm()
+    form_dataset = DatasetForm()
     context = {
         'author_docs': author_docs,
+        'form_algo': form_algo,
+        'form_dataset': form_dataset,
+        'can_save_algo': True,
     }
-    return render(request, 'web/models/author_new.html', context)
+    return render(request, 'web/models/author_view.html', context)
 
 
 def models_author_view(request, pk):
-    return render(request, 'web/models/author_view.html')
+    author_docs = markdown.markdown(SHORT_DOC, extensions=[fenced_code.FencedCodeExtension()])
+    user = request.user if request.user.is_authenticated else None
+    algo = get_object_or_404(Algorithm, models.Q(author=user) | models.Q(is_public=True), pk=pk)
+    form = AlgorithmForm(instance=algo, request=request)
+    context = {
+        'author_docs': author_docs,
+        'form_algo': form,
+        'can_save_algo': user == algo.author,
+    }
+    return render(request, 'web/models/author_view.html', context)
 
 
 def datasets_list(request):
-    datasets = Dataset.objects.filter(models.Q(is_public=True) | models.Q(author=request.user)).order_by('-dt_edited')
-    return render(request, 'web/datasets/list.html', {'datasets': datasets})
+    user = request.user if request.user.is_authenticated else None
+    filters = models.Q(is_public=True) | models.Q(author=user)
+    q = request.GET.get('q')
+    if q:
+        filters &= models.Q(description__icontains=q) | models.Q(author__email__icontains=q)
+    datasets = Dataset.objects.filter(filters).order_by('-dt_edited')
+    return render(request, 'web/datasets/list.html', {'datasets': datasets, 'q': q})
+
+
+@login_required
+def datasets_new(request):
+    form = DatasetForm(request.POST or None, skip_required=True)
+    if request.method == 'GET':
+        return render(request, 'web/datasets/new.html', {'form': form})
+    parameters = form.parameters_to_json()
+    data = form.cleaned_data
+    Dataset.objects.create(
+        data=data['consumption'],
+        author=request.user,
+        description=data['description'],
+        parameters=parameters,
+        is_public=data['is_public'],
+    ).save()
+    return redirect('datasets_list')
+
+
+@login_required
+def datasets_edit(request, pk):
+    dataset = get_object_or_404(Dataset, pk=pk, author=request.user)
+    if request.method == 'POST':
+        form = DatasetForm(request.POST, skip_required=True)
+        parameters = form.parameters_to_json()
+        data = form.cleaned_data
+        dataset.data = data['consumption']
+        dataset.is_public = data['is_public']
+        dataset.parameters = parameters
+        dataset.description = data['description']
+        dataset.save()
+        return redirect('datasets_list')
+    data = {
+        'consumption': dataset.data,
+        'description': dataset.description,
+        'is_public': dataset.is_public,
+    }
+    try:
+        parameters = json.loads(dataset.parameters)
+        data.update(parameters)
+    except json.JSONDecodeError:
+        pass
+    form = DatasetForm(data, skip_required=True)
+    return render(request, 'web/datasets/new.html', {'form': form})
+
+
+def docs(request):
+    context = {
+        'docs': markdown.markdown(SHORT_DOC, extensions=[fenced_code.FencedCodeExtension()])
+    }
+    return render(request, 'web/docs/docs.html', context)

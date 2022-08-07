@@ -1,10 +1,284 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'web/base.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}
+  Авторские модели
+{% endblock %}
+{% block header %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <nav id="sidebarMenu" class="col-md-4 col-lg-3 d-md-block pb-3 mb-1">
+        {% include 'web/includes/form_author.html' %}
+      </nav>
+      <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4">
+        {% include 'web/includes/chart.html' %}
+      </main>
+    </div>
+  </div>
+
+  {% include 'web/includes/modal_datasets.html' %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"
+          integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="{% static 'js/chart_draw.js' %}"></script>
+  <script src="{% static 'js/common_actions.js' %}"></script>
+  <script>
+      // form elements
+      const form = document.getElementsByTagName('form')[0]
+
+      const formFormulaPointRefill = document.getElementById('formulaPointRefill')
+      const formFormulaOrderSize = document.getElementById('formulaOrderSize')
+      const formFormulaScore = document.getElementById('formulaScore')
+      const formFormulaIsPublic = document.getElementById('formFormulaIsPublic')
+      const formFormulaDescription = document.getElementById('formFormulaDescription')
+
+      const formOrderCosts = document.getElementById('orderCosts')
+      const formStorageCosts = document.getElementById('storageCosts')
+      const formDeliveryTime = document.getElementById('deliveryTime')
+      const formDelayTime = document.getElementById('delayTime')
+      const formInitialStock = document.getElementById('initialStock')
+      const formDelayProbability = document.getElementById('delayProbability')
+      const formDelayDays = document.getElementById('delayDays')
+      // optional form fields
+      const formDeficitLoss = document.getElementById('deficitLosses')
+      const formDInput = document.getElementById('avgDailyConsumption')
+      const formSInput = document.getElementById('avgDailyConsumptionD')
+      const formConsumption = document.getElementById('consumptionDataset')
+
+      // работа с графиком
+      const btnDownloadChart = document.getElementById('btnDownloadChart')
+      const btnResetZoom = document.getElementById('btnResetZoom')
+      const btnDownloadExcel = document.getElementById('btnDownloadExcel')
+      const btnClearForm = document.getElementById('btnClearForm')
+      const infoDiv = document.getElementById('infoDiv')
+      const btnSaveAlgorithm = document.getElementById('btnSaveAlgorithm')
+      const btnSaveAlgorithmBefore = document.getElementById('btnSaveAlgorithmBefore')
+
+
+      function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms))
+      }
+
+      async function changePlaceholder(inputElement, idx, placeholders, playCount) {
+          let [placeText, t] = placeholders[idx]
+          for (let i = 0; i <= placeText.length; i++) {
+              inputElement.placeholder = 'Например: ' + placeText.slice(0, i)
+              await sleep(50)
+          }
+          if (idx + 1 >= placeholders.length) {
+              idx = 0
+          } else {
+              idx++
+          }
+          await sleep(t)
+          for (let i = placeText.length; i >= 0; i--) {
+              inputElement.placeholder = 'Например: ' + placeText.slice(0, i)
+              await sleep(15)
+          }
+          if (playCount === 0) {
+              inputElement.placeholder = ''
+              return
+          }
+          await changePlaceholder(inputElement, idx, placeholders, playCount - 1)
+      }
+
+      changePlaceholder(
+          formFormulaPointRefill,
+          0,
+          [
+              ['curBalance < 1000', 2000],
+              ['iDay % 5 == 0', 4000],
+              ['curBalance <= MEAN(Consumption) * (Delivery + Delay)', 5000],
+              ['(iDay % 3 == 0) OR (balance < 1000)', 5000],
+          ],
+          5
+      )
+      changePlaceholder(
+          formFormulaOrderSize,
+          0,
+          [
+              ['ABS(curBalance) * 3', 2000],
+              ['MEAN(Consumption) * (Delivery + Delay)', 3000],
+              ['Consumption[iDay-(Delivery+Delay):iDay]', 5000],
+          ],
+          5
+      )
+
+
+      // для tooltip графика (словарь)
+      let outcomeOrdersCount
+      let incomeOrdersCount
+      // для загрузки
+      let lastRequestParams
+
+      const consumptionRegex = /^(\d+[.,]?\d*\n)*\d+.?\d*$/
+
+      form.onsubmit = e => {
+          e.preventDefault()
+          if (!form.checkValidity()) {
+              return
+          }
+          if (!consumptionRegex.test(formConsumption.value)) {
+              showError('Заполните данные потребления в указанном формате\n' +
+                  'Каждое значение с новой строки, разделитель точка или запятая')
+              return
+          }
+          buildModelAuthor()
+      }
+
+      // delay probability events
+      formDelayProbability.oninput = changeTextLabelForDelayProbability
+      changeTextLabelForDelayProbability()
+
+      function changeTextLabelForDelayProbability() {
+          formDelayProbability.labels[0].textContent = `Вероятность задержки: ${Math.round(formDelayProbability.value * 100).toFixed(0)}%`
+      }
+
+      // delay days field changes
+      formDelayDays.oninput = e => {
+          e.preventDefault()
+          if (formDelayDays.value !== '') {
+              formDelayProbability.value = 0
+              changeTextLabelForDelayProbability()
+          }
+          formDelayProbability.disabled = formDelayDays.value !== '';
+      }
+
+      function buildModelAuthor() {
+          let consumptionData = formConsumption.value.replaceAll(',', '.').split('\n').map(Number)
+
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              if (xhr.status !== 200) {
+                  console.error(xhr.responseText)
+                  showError(`${xhr.status}\n${xhr.responseText}`)
+                  return
+              }
+              let resp = JSON.parse(xhr.response)
+              updateChart(mainChart, resp)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+              showError(`Ошибка сервера\n${xhr.responseText}`)
+          }
+          xhr.open('POST', '/api/v1/build/author/')
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
+          let data = {
+              formula_point_refill: formFormulaPointRefill.value,
+              formula_order_size: formFormulaOrderSize.value,
+              consumption: consumptionData,
+              order_costs: formOrderCosts.value,
+              storage_costs: formStorageCosts.value,
+              delivery_time: formDeliveryTime.value,
+              delay_time: formDelayTime.value,
+              initial_stock: formInitialStock.value,
+              delay_probability: formDelayProbability.value,
+              delay_days: formDelayDays.value.split(',').map(Number),
+          }
+          if (formFormulaScore.value !== '') {
+              data['formula_score'] = formFormulaScore.value
+          }
+          if (formDeficitLoss.value !== '') {
+              data['deficit_losses'] = formDeficitLoss.value
+          }
+          if (formSInput.value !== '') {
+              data['s'] = formSInput.value
+          }
+          if (formDInput.value !== '') {
+              data['d'] = formDInput.value
+          }
+          lastRequestParams = data
+          xhr.send(JSON.stringify(data))
+      }
+
+      // работа с сохранением алгоритма
+      let algorithmID = '{{ form_algo.instance.id|default:"" }}'
+
+      btnSaveAlgorithmBefore.onclick = e => {
+          e.preventDefault()
+          if (!checkAlgorithmFormValid()) {
+              return
+          }
+          $('#modalSaveAlgorithm').modal('show')
+      }
+      btnSaveAlgorithm.onclick = e => {
+          e.preventDefault()
+          if (!checkAlgorithmFormValid()) {
+              return
+          }
+          if (algorithmID === '') {
+              algorithmSaveNew()
+          } else {
+              algorithmUpdate()
+          }
+          $('#modalSaveAlgorithm').modal('hide')
+      }
+
+      function checkAlgorithmFormValid() {
+          let requiredFields = [
+              formFormulaPointRefill,
+              formFormulaOrderSize
+          ]
+          for (let el of requiredFields) {
+              if (!el.checkValidity()) {
+                  el.reportValidity()
+                  return false
+              }
+          }
+          return true
+      }
+
+      function algorithmSaveNew() {
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              let resp = JSON.parse(xhr.response)
+              console.log(resp)
+              algorithmID = resp['id']
+              btnSaveAlgorithm.innerText = 'Обновить модель'
+          }
+          xhr.onerror = err => {
+              console.error(err)
+          }
+          xhr.open('POST', '/api/v1/algorithms/')
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
+          xhr.send(algorithmPrepareBody())
+      }
+
+      function algorithmUpdate() {
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              let resp = JSON.parse(xhr.response)
+              console.log(resp)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+          }
+          xhr.open('PUT', `/api/v1/algorithms/${algorithmID}/`)
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
+          xhr.send(algorithmPrepareBody())
+      }
+
+      function algorithmPrepareBody() {
+          return JSON.stringify({
+              formula_point_refill: formFormulaPointRefill.value,
+              formula_order_size: formFormulaOrderSize.value,
+              formula_score: formFormulaScore.value,
+              is_public: formFormulaIsPublic.checked,
+              description: formFormulaDescription.value,
+          })
+      }
+
+  </script>
+{% endblock %}

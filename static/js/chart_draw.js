@@ -8,7 +8,11 @@ btnDownloadChart.onclick = () => {
 }
 // btn excel download action
 btnDownloadExcel.onclick = downloadExcelFile
-btnClearForm.onclick = () => {
+btnClearForm.onclick = e => {
+    e.preventDefault()
+    localStorage.removeItem('formFormulaPointRefill')
+    localStorage.removeItem('formFormulaOrderSize')
+    localStorage.removeItem('formFormulaScore')
     for (let el of form.elements) {
         if (el.name === 'csrfmiddlewaretoken') {
             continue
@@ -123,7 +127,7 @@ function updateChart(chart, responseDict) {
     let balance_response = responseDict['balance']
     let income_order = responseDict['income_order']
     let outcome_order = responseDict['outcome_order']
-    let consumption_response = responseDict['formConsumption']
+    let consumption_response = responseDict['consumption']
 
     balanceLine.data = balance_response
     consumptionLine.data = consumption_response
@@ -157,28 +161,28 @@ function updateChart(chart, responseDict) {
     chart.update()
 }
 
- // todo
- function downloadExcelFile() {
-          let xhr = new XMLHttpRequest()
-          xhr.responseType = 'blob'
+// todo
+function downloadExcelFile() {
+    let xhr = new XMLHttpRequest()
+    xhr.responseType = 'blob'
 
-          xhr.onload = () => {
-              if (xhr.status !== 200) {
-                  console.error(xhr.response)
-                  showError(`${xhr.status}\n${xhr.responseText}`)
-                  return
-              }
-              let file = new Blob([xhr.response], {type: 'application/vnd.ms-excel'})
-              let fileUrl = window.URL.createObjectURL(file)
-              let a = document.createElement("a");
-              a.href = fileUrl;
-              a.download = 'res.xlsx';
-              a.click()
-          }
-          xhr.onerror = err => {
-              console.error(err)
-          }
-          xhr.open('POST', '/inventory-models/download')
-          xhr.setRequestHeader('Content-Type', 'application/json')
-          xhr.send(JSON.stringify(lastRequestParams))
-      }
+    xhr.onload = () => {
+        if (xhr.status !== 200) {
+            console.error(xhr.response)
+            showError(`${xhr.status}\n${xhr.responseText}`)
+            return
+        }
+        let file = new Blob([xhr.response], {type: 'application/vnd.ms-excel'})
+        let fileUrl = window.URL.createObjectURL(file)
+        let a = document.createElement("a");
+        a.href = fileUrl;
+        a.download = 'res.xlsx';
+        a.click()
+    }
+    xhr.onerror = err => {
+        console.error(err)
+    }
+    xhr.open('POST', '/inventory-models/download')
+    xhr.setRequestHeader('Content-Type', 'application/json')
+    xhr.send(JSON.stringify(lastRequestParams))
+}
