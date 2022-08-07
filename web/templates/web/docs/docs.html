@@ -1,7 +1,12 @@
 {% extends 'web/base.html' %}
+{% load static %}
 
 {% block title %}
   Документация
+{% endblock %}
+
+{% block header %}
+  <link rel="stylesheet" href="{% static 'css/docs.css' %}"/>
 {% endblock %}
 
 {% block content %}
@@ -12,28 +17,20 @@
         }
     </style>
 
-    <div class="row">
+    <div class="row mb-3 mt-3">
       <div class="col-4" style="position: -ms-device-fixed">
-        <div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy text-center">
+        {% comment %}<div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy text-center">
           <a class="p-1 rounded" href="#simple-list-item-1">Item 1</a>
           <a class="p-1 rounded" href="#simple-list-item-2">Item 2</a>
           <a class="p-1 rounded" href="#simple-list-item-3">Item 3</a>
           <a class="p-1 rounded" href="#simple-list-item-4">Item 4</a>
           <a class="p-1 rounded" href="#simple-list-item-5">Item 5</a>
-        </div>
+        </div>{% endcomment %}
       </div>
       <div class="col-8">
         <div data-bs-spy="scroll" data-bs-target="#simple-list-example" data-bs-offset="0" data-bs-smooth-scroll="true"
-             class="scrollspy-example" tabindex="0">
-          <h4 id="simple-list-item-1">Item 1</h4>
-          <p>{{ docs|safe }}</p>
-          <h4 id="simple-list-item-2">Item 2</h4>
-          <p>{{ docs|safe }}</p>
-          <h4 id="simple-list-item-3">Item 3</h4>
-          <p>{{ docs|safe }}</p>
-          <h4 id="simple-list-item-4">Item 4</h4>
-          <p>{{ docs|safe }}</p>
-          <h4 id="simple-list-item-5">Item 5</h4>
+             class="scrollspy-example docs" tabindex="0">
+          <h4 id="simple-list-item-1">Авторские модели</h4>
           <p>{{ docs|safe }}</p>
         </div>
       </div>

@@ -1,15 +1,15 @@
 import json
 from decimal import Decimal
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
 import markdown
-from markdown.extensions import fenced_code
-from core.stock_models._docs import SHORT_DOC
-from core.models import Dataset, Algorithm
-from web.forms import ClassicModelForm, AlgorithmForm, DatasetForm
-from markdown.extensions import tables
+from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.shortcuts import get_object_or_404, redirect, render
+from markdown.extensions import fenced_code, tables
+
+from core.models import Algorithm, Dataset
+from core.stock_models import SHORT_DOC, LONG_DOC
+from web.forms import AlgorithmForm, ClassicModelForm, DatasetForm
 
 """
 / - стартовая страница
@@ -132,6 +132,6 @@ def datasets_edit(request, pk):
 
 def docs(request):
     context = {
-        'docs': markdown.markdown(SHORT_DOC, extensions=[fenced_code.FencedCodeExtension()])
+        'docs': markdown.markdown(LONG_DOC, extensions=[fenced_code.FencedCodeExtension()])
     }
     return render(request, 'web/docs/docs.html', context)

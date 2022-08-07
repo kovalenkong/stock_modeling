@@ -30,8 +30,26 @@
       {% for row in algo %}
         <tr id="table-row-{{ row.pk }}">
           <th scope="row">{{ row.id }}</th>
-          <td>{{ row.formula_point_refill|truncatechars:"25" }}</td>
-          <td>{{ row.formula_order_size|truncatechars:"25" }}</td>
+          {% if row.formula_point_refill %}
+            {% if row.formula_point_refill|length > 25 %}
+              <td data-bs-toggle="tooltip" data-bs-placement="right"
+                  data-bs-title="{{ row.formula_point_refill|truncatechars:"100"|default:"-" }}">{{ row.formula_point_refill|truncatechars:"25"|default:"-" }}</td>
+            {% else %}
+              <td>{{ row.formula_point_refill }}</td>
+            {% endif %}
+          {% else %}
+            <td>-</td>
+          {% endif %}
+        {% if row.formula_order_size %}
+            {% if row.formula_order_size|length > 25 %}
+              <td data-bs-toggle="tooltip" data-bs-placement="right"
+                  data-bs-title="{{ row.formula_order_size|truncatechars:"100"|default:"-" }}">{{ row.formula_order_size|truncatechars:"25"|default:"-" }}</td>
+            {% else %}
+              <td>{{ row.formula_order_size }}</td>
+            {% endif %}
+          {% else %}
+            <td>-</td>
+          {% endif %}
           {% if row.description %}
             {% if row.description|length > 25 %}
               <td data-bs-toggle="tooltip" data-bs-placement="right"

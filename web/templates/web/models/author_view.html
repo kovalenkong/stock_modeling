@@ -29,8 +29,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"
           integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="{% static 'js/chart_draw.js' %}"></script>
-  <script src="{% static 'js/common_actions.js' %}"></script>
+
+  <script src="{% static 'js/scripts/chart.js' %}"></script>
+  <script src="{% static 'js/scripts/utils.js' %}"></script>
+  <script src="{% static 'js/scripts/common.js' %}"></script>
+
   <script>
       // form elements
       const form = document.getElementsByTagName('form')[0]
@@ -54,43 +57,10 @@
       const formSInput = document.getElementById('avgDailyConsumptionD')
       const formConsumption = document.getElementById('consumptionDataset')
 
-      // работа с графиком
-      const btnDownloadChart = document.getElementById('btnDownloadChart')
-      const btnResetZoom = document.getElementById('btnResetZoom')
-      const btnDownloadExcel = document.getElementById('btnDownloadExcel')
-      const btnClearForm = document.getElementById('btnClearForm')
-      const infoDiv = document.getElementById('infoDiv')
       const btnSaveAlgorithm = document.getElementById('btnSaveAlgorithm')
       const btnSaveAlgorithmBefore = document.getElementById('btnSaveAlgorithmBefore')
 
-
-      function sleep(ms) {
-          return new Promise(resolve => setTimeout(resolve, ms))
-      }
-
-      async function changePlaceholder(inputElement, idx, placeholders, playCount) {
-          let [placeText, t] = placeholders[idx]
-          for (let i = 0; i <= placeText.length; i++) {
-              inputElement.placeholder = 'Например: ' + placeText.slice(0, i)
-              await sleep(50)
-          }
-          if (idx + 1 >= placeholders.length) {
-              idx = 0
-          } else {
-              idx++
-          }
-          await sleep(t)
-          for (let i = placeText.length; i >= 0; i--) {
-              inputElement.placeholder = 'Например: ' + placeText.slice(0, i)
-              await sleep(15)
-          }
-          if (playCount === 0) {
-              inputElement.placeholder = ''
-              return
-          }
-          await changePlaceholder(inputElement, idx, placeholders, playCount - 1)
-      }
-
+      // animate placeholders formulas
       changePlaceholder(
           formFormulaPointRefill,
           0,
@@ -112,16 +82,7 @@
           ],
           5
       )
-
-
-      // для tooltip графика (словарь)
-      let outcomeOrdersCount
-      let incomeOrdersCount
-      // для загрузки
-      let lastRequestParams
-
       const consumptionRegex = /^(\d+[.,]?\d*\n)*\d+.?\d*$/
-
       form.onsubmit = e => {
           e.preventDefault()
           if (!form.checkValidity()) {
@@ -132,30 +93,10 @@
                   'Каждое значение с новой строки, разделитель точка или запятая')
               return
           }
-          buildModelAuthor()
+          buildModelAuthor(authorModelPrepareData())
       }
 
-      // delay probability events
-      formDelayProbability.oninput = changeTextLabelForDelayProbability
-      changeTextLabelForDelayProbability()
-
-      function changeTextLabelForDelayProbability() {
-          formDelayProbability.labels[0].textContent = `Вероятность задержки: ${Math.round(formDelayProbability.value * 100).toFixed(0)}%`
-      }
-
-      // delay days field changes
-      formDelayDays.oninput = e => {
-          e.preventDefault()
-          if (formDelayDays.value !== '') {
-              formDelayProbability.value = 0
-              changeTextLabelForDelayProbability()
-          }
-          formDelayProbability.disabled = formDelayDays.value !== '';
-      }
-
-      function buildModelAuthor() {
-          let consumptionData = formConsumption.value.replaceAll(',', '.').split('\n').map(Number)
-
+      function buildModelAuthor(data) {
           let xhr = new XMLHttpRequest()
           xhr.onload = () => {
               if (xhr.status !== 200) {
@@ -164,7 +105,7 @@
                   return
               }
               let resp = JSON.parse(xhr.response)
-              updateChart(mainChart, resp)
+              updateChart(resp)
           }
           xhr.onerror = err => {
               console.error(err)
@@ -173,6 +114,11 @@
           xhr.open('POST', '/api/v1/build/author/')
           xhr.setRequestHeader('Content-Type', 'application/json')
           xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
+          xhr.send(JSON.stringify(data))
+      }
+
+      function authorModelPrepareData() {
+          let consumptionData = formConsumption.value.replaceAll(',', '.').split('\n').map(Number)
           let data = {
               formula_point_refill: formFormulaPointRefill.value,
               formula_order_size: formFormulaOrderSize.value,
@@ -197,9 +143,27 @@
           if (formDInput.value !== '') {
               data['d'] = formDInput.value
           }
-          lastRequestParams = data
-          xhr.send(JSON.stringify(data))
+          return data
       }
+
+      // delay probability events
+      formDelayProbability.oninput = changeTextLabelForDelayProbability
+      changeTextLabelForDelayProbability()
+
+      function changeTextLabelForDelayProbability() {
+          formDelayProbability.labels[0].textContent = `Вероятность задержки: ${Math.round(formDelayProbability.value * 100).toFixed(0)}%`
+      }
+
+      // delay days field changes
+      formDelayDays.oninput = e => {
+          e.preventDefault()
+          if (formDelayDays.value !== '') {
+              formDelayProbability.value = 0
+              changeTextLabelForDelayProbability()
+          }
+          formDelayProbability.disabled = formDelayDays.value !== '';
+      }
+
 
       // работа с сохранением алгоритма
       let algorithmID = '{{ form_algo.instance.id|default:"" }}'
@@ -279,6 +243,7 @@
               description: formFormulaDescription.value,
           })
       }
+
 
   </script>
 {% endblock %}

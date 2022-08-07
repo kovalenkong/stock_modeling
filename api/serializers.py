@@ -2,7 +2,7 @@ import json
 
 from rest_framework import serializers
 
-from core.models import Dataset, User, Algorithm
+from core.models import Algorithm, Dataset, User
 from core.stock_models.config import MODEL_TYPE, MODIFICATION
 
 

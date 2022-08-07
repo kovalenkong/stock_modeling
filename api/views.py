@@ -12,7 +12,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from core.models import Dataset, Algorithm
+from core.models import Algorithm, Dataset
 from core.stock_models import author
 from core.stock_models.builders import (build_fiv, build_fixed_period,
                                         build_frz, build_minimum_maximum)
@@ -20,8 +20,9 @@ from core.stock_models.config import MODEL_TYPE, Config
 from core.stock_models.errors import ConfigError
 
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (AuthorModelSerializer, ClassicModelSerializer,
-                          DatasetDetailSerializer, DatasetListSerializer, AlgorithmSerializer)
+from .serializers import (AlgorithmSerializer, AuthorModelSerializer,
+                          ClassicModelSerializer, DatasetDetailSerializer,
+                          DatasetListSerializer)
 
 _model_factory = {
     MODEL_TYPE.FRZ.value: build_frz,

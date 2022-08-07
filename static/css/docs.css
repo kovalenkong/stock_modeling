@@ -1,0 +1,22 @@
+.docs pre > code {
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-weight: normal;
+    color: #96d0ff;
+}
+
+.docs code {
+    color: #f47067;
+}
+
+.docs pre {
+    padding: 16px;
+    background: #2d333b;
+    /*color: #adbac7;*/
+    border-radius: 6px;
+    line-height: 1.45;
+}
+
+/*.docs code {*/
+/*    font-weight: bold;*/
+/*}*/

@@ -33,8 +33,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
           integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="{% static 'js/chart_draw.js' %}"></script>
-  <script src="{% static 'js/common_actions.js' %}" type="text/javascript"></script>
+
+  <script src="{% static 'js/scripts/chart.js' %}"></script>
+  <script src="{% static 'js/scripts/utils.js' %}"></script>
+  <script src="{% static 'js/scripts/common.js' %}"></script>
   <script>
       const MODEL_TYPE_CLASSIC = 'classic'
       const MODEL_TYPE_AUTHOR = 'author'
@@ -56,18 +58,6 @@
       const formSInput = document.getElementById('avgDailyConsumptionD')
       const formConsumption = document.getElementById('consumptionDataset')
 
-      // работа с графиком
-      const btnDownloadChart = document.getElementById('btnDownloadChart')
-      const btnResetZoom = document.getElementById('btnResetZoom')
-      const btnDownloadExcel = document.getElementById('btnDownloadExcel')
-      const btnClearForm = document.getElementById('btnClearForm')
-      const infoDiv = document.getElementById('infoDiv')
-
-      // для tooltip графика (словарь)
-      let outcomeOrdersCount
-      let incomeOrdersCount
-      // для загрузки
-      let lastRequestParams
 
       const consumptionRegex = /^(\d+[.,]?\d*\n)*\d+.?\d*$/
 
@@ -81,7 +71,7 @@
                   'Каждое значение с новой строки, разделитель точка или запятая')
               return
           }
-          buildModelClassic()
+          buildModelClassic(classicModelPrepareData())
       }
 
       // delay probability events
@@ -114,26 +104,8 @@
           formDelayProbability.disabled = formDelayDays.value !== '';
       }
 
-      function buildModelClassic() {
+      function classicModelPrepareData() {
           let consumptionData = formConsumption.value.replaceAll(',', '.').split('\n').map(Number)
-
-          let xhr = new XMLHttpRequest()
-          xhr.onload = () => {
-              if (xhr.status !== 200) {
-                  console.error(xhr.responseText)
-                  showError(`${xhr.status}\n${xhr.responseText}`)
-                  return
-              }
-              let resp = JSON.parse(xhr.response)
-              updateChart(mainChart, resp)
-          }
-          xhr.onerror = err => {
-              console.error(err)
-              showError(`Ошибка сервера\n${xhr.responseText}`)
-          }
-          xhr.open('POST', '/api/v1/build/classic/')
-          xhr.setRequestHeader('Content-Type', 'application/json')
-          xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
           let data = {
               model_type: formModelType.value,
               modification: formModification.value,
@@ -155,7 +127,29 @@
           if (formDInput.value !== '') {
               data['d'] = formDInput.value
           }
-          lastRequestParams = data
+          return data
+      }
+
+      function buildModelClassic(data) {
+
+          let xhr = new XMLHttpRequest()
+          xhr.onload = () => {
+              if (xhr.status !== 200) {
+                  console.error(xhr.responseText)
+                  showError(`${xhr.status}\n${xhr.responseText}`)
+                  return
+              }
+              let resp = JSON.parse(xhr.response)
+              updateChart(resp)
+          }
+          xhr.onerror = err => {
+              console.error(err)
+              showError(`Ошибка сервера\n${xhr.responseText}`)
+          }
+          xhr.open('POST', '/api/v1/build/classic/')
+          xhr.setRequestHeader('Content-Type', 'application/json')
+          xhr.setRequestHeader('X-CSRFToken', form['csrfmiddlewaretoken'].value)
+
           xhr.send(JSON.stringify(data))
       }
 

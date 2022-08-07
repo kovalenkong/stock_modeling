@@ -9,8 +9,10 @@
 {% endblock %}
 
 {% block content %}
+  {% csrf_token %}
   <div class="container pt-3">
-  <a role="button" href="{% url 'datasets_new' %}" class="mb-3 mt-3 btn btn-outline-primary"><i class="bi bi-plus-lg"></i></a>
+    <a role="button" href="{% url 'datasets_new' %}" class="mb-3 mt-3 btn btn-outline-primary"><i
+            class="bi bi-plus-lg"></i></a>
     {% include 'web/includes/search_form.html' %}
     <table class="table table-striped">
       <thead>
@@ -27,7 +29,7 @@
       <tbody>
       {% if datasets %}
         {% for row in datasets %}
-          <tr>
+          <tr id="table-row-{{ row.pk }}">
             <th scope="row">{{ row.id }}</th>
             <td>{{ row.author.email }}</td>
             {% if row.description %}
@@ -69,4 +71,56 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="modalDeleteAlgorithm" tabindex="-1" aria-labelledby="modalDeleteAlgorithmLabel"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalDeleteAlgorithmLabel">Удалить</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalDeleteAlgorithmBody">
+          Вы действительно хоти
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+          <button type="button" class="btn btn-danger" id="modalDeleteAlgorithmConfirm">Да</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+      const modalDeleteBody = document.getElementById('modalDeleteAlgorithmBody')
+      const modalDeleteAlgorithmConfirm = document.getElementById('modalDeleteAlgorithmConfirm')
+      const csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0]
+
+      function openModalDelete(id) {
+          console.log(id)
+          modalDeleteBody.textContent = `Вы действительно хотите удалить датасет ${id}?`
+          modalDeleteAlgorithmConfirm.onclick = e => {
+              let xhr = new XMLHttpRequest()
+              xhr.onload = () => {
+                  document.getElementById(`table-row-${id}`).remove()
+                  console.log(xhr.response)
+              }
+              xhr.onerror = err => {
+                  console.error(err)
+              }
+              xhr.open('DELETE', `/api/v1/datasets/${id}`)
+              xhr.setRequestHeader('X-CSRFToken', csrfToken.value)
+              xhr.send()
+              $('#modalDeleteAlgorithm').modal('hide')
+          }
+          $('#modalDeleteAlgorithm').modal('show')
+
+      }
+  </script>
+
 {% endblock %}

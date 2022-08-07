@@ -15,6 +15,7 @@ _CONTEXT_FORMULAS = {
     'len': len,
     'max': lambda i: max(i),
     'min': lambda i: min(i),
+    'round': round,
 }
 
 
