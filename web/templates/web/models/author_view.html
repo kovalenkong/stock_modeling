@@ -65,10 +65,10 @@
           formFormulaPointRefill,
           0,
           [
-              ['curBalance < 1000', 2000],
-              ['iDay % 5 == 0', 4000],
-              ['curBalance <= MEAN(Consumption) * (Delivery + Delay)', 5000],
-              ['(iDay % 3 == 0) OR (balance < 1000)', 5000],
+              ['balance < 1000', 2000],
+              ['day % 5 == 0', 4000],
+              ['balance <= MEAN(Consumption) * (Delivery + Delay)', 5000],
+              ['(day % 3 == 0) OR (balance < 1000)', 5000],
           ],
           5
       )
@@ -76,9 +76,9 @@
           formFormulaOrderSize,
           0,
           [
-              ['ABS(curBalance) * 3', 2000],
+              ['ABS(balance) * 3', 2000],
               ['MEAN(Consumption) * (Delivery + Delay)', 3000],
-              ['Consumption[iDay-(Delivery+Delay):iDay]', 5000],
+              ['Consumption[day-(Delivery+Delay):day]', 5000],
           ],
           5
       )
@@ -101,7 +101,8 @@
           xhr.onload = () => {
               if (xhr.status !== 200) {
                   console.error(xhr.responseText)
-                  showError(`${xhr.status}\n${xhr.responseText}`)
+                  let err = JSON.parse(xhr.responseText)['error']
+                  showError(`${xhr.status}\n${err}`)
                   return
               }
               let resp = JSON.parse(xhr.response)

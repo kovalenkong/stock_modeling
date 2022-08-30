@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from ._formula_parser import execute
+from .custom_formulas import countifs, sumifs, filter_
 
 _CONTEXT_FORMULAS = {
     'sum': sum,
@@ -12,10 +13,13 @@ _CONTEXT_FORMULAS = {
     'std': lambda i: np.std(i),
     'abs': abs,
     'sqrt': lambda i: np.sqrt(i),
-    'len': len,
+    'count': len,
     'max': lambda i: max(i),
     'min': lambda i: min(i),
     'round': round,
+    'countifs': countifs,
+    'sumifs': sumifs,
+    'filter': filter_,
 }
 
 
@@ -71,9 +75,9 @@ def build_author_model(
         context = {
             **_CONTEXT_FORMULAS,
             **CONTEXT_CONSTANTS,
-            'curBalance': balance[i],
-            'nOut': number_of_outcome_orders,
-            'iDay': i,
+            'balance': balance[i],
+            'out': number_of_outcome_orders,
+            'day': i,
         }
         # если пора делать заявку
         if execute(formula_point_refill, context):
@@ -104,9 +108,9 @@ def build_author_model(
     context = {
         **_CONTEXT_FORMULAS,
         **CONTEXT_CONSTANTS,
-        'balance': balance,
-        'income': income_order,
-        'outcome': outcome_order
+        'Fact': balance,
+        'Income': income_order,
+        'Outcome': outcome_order,
     }  # todo
 
     score = execute(formula_score, context) if formula_score else None

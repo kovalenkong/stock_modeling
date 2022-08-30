@@ -85,7 +85,7 @@ def build_classic_model(request):
         'outcome_order': model.outcome_order.tolist(),
         'consumption': model.consumption.tolist(),
         'info': df_info.to_html(
-            classes='table table-striped table-hover table-sm',
+            classes='table table-striped table-hover table-sm table-dark text-light',
             border=0,
             float_format=lambda i: '{:,.3f}'.format(i),
         ),
@@ -143,7 +143,7 @@ def build_author_model(request):
         'outcome_order': model.outcome_order.tolist(),
         'consumption': model.consumption.tolist(),
         'info': df_info.to_html(
-            classes='table table-striped table-hover table-sm',
+            classes='table table-striped table-hover table-sm table-dark text-light',
             border=0,
             float_format=lambda i: '{:,.3f}'.format(i),
         ),

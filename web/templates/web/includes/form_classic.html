@@ -2,7 +2,7 @@
   {% csrf_token %}
   <div class="mb-3 col-md-6">
     <label for="modelType">Тип модели</label>
-    <select class="form-select" aria-label="тип модели" required id="modelType" name="modelType">
+    <select class="form-select bg-dark text-light" aria-label="тип модели" required id="modelType" name="modelType">
       <option value="frz">ФРЗ</option>
       <option value="fiv">ФИВ</option>
       <option value="min_max">Минимум-Максимум</option>
@@ -11,7 +11,7 @@
   </div>
   <div class="mb-3 col-md-6">
     <label for="modification">Модификация</label>
-    <select class="form-select" aria-label="модификация" required id="modification" name="modification">
+    <select class="form-select bg-dark text-light" aria-label="модификация" required id="modification" name="modification">
       <option value="classic" selected>Классическая</option>
       <option value="lost_sales">Упущенных продаж</option>
       <option value="gradual_replenishment">Постепенного пополнения</option>

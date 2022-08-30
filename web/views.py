@@ -22,7 +22,7 @@ from web.forms import AlgorithmForm, ClassicModelForm, DatasetForm
 
 
 def test(request):
-    return render(request, 'web/test.html')
+    return render(request, 'web/test.html', {'docs': LONG_DOC})
 
 
 def index(request):
@@ -45,7 +45,7 @@ def models_author_list(request):
     if q:
         filters &= models.Q(description__icontains=q) | models.Q(formula_point_refill__icontains=q) | models.Q(
             formula_order_size__icontains=q) | models.Q(author__email__icontains=q)
-    algo = Algorithm.objects.filter(filters).order_by('-dt_edited')
+    algo = Algorithm.objects.filter(filters).order_by('-id')
     return render(request, 'web/models/author_list.html', {'algo': algo, 'q': q})
 
 
@@ -82,7 +82,7 @@ def datasets_list(request):
     q = request.GET.get('q')
     if q:
         filters &= models.Q(description__icontains=q) | models.Q(author__email__icontains=q)
-    datasets = Dataset.objects.filter(filters).order_by('-dt_edited')
+    datasets = Dataset.objects.filter(filters).order_by('-dt_edited', '-id')
     return render(request, 'web/datasets/list.html', {'datasets': datasets, 'q': q})
 
 
@@ -132,6 +132,6 @@ def datasets_edit(request, pk):
 
 def docs(request):
     context = {
-        'docs': markdown.markdown(LONG_DOC, extensions=[fenced_code.FencedCodeExtension()])
+        'docs': markdown.markdown(LONG_DOC, extensions=[fenced_code.FencedCodeExtension(), tables.TableExtension()])
     }
     return render(request, 'web/docs/docs.html', context)

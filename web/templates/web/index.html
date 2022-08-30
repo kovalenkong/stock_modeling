@@ -1,12 +1,98 @@
 {% extends 'web/base.html' %}
 
-{% block title %}
-  Модели управления запасами
-{% endblock %}
+{% load static %}
+
 {% block header %}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block content %}
-  Тут какое-то описание проекта
+
+  <section
+          class="dark-mode bg-size-cover bg-repeat-0 bg-position-center position-relative overflow-hidden py-5 mb-4 pb-5"
+          style="background-color:rgb(13,16,27)">
+    <div class="container position-relative zindex-2 pt-5 pb-md-2 pb-lg-4 pb-xl-5">
+      <div class="row pt-3 pb-2 py-md-4">
+        <div class="col-xl-5 col-md-6 pt-lg-5 text-center text-md-start mb-4 mb-md-0">
+          <h1 class="display-3 pb-2 pb-sm-3">Моделирование движения запасов</h1>
+          <p class="fs-lg d-md-none d-xl-block pb-2 pb-md-0 mb-4 mb-md-5">
+            Используйте классические модели, создавайте свои!
+          </p>
+          <div class="d-flex justify-content-center justify-content-md-start pb-2 pt-lg-2 pt-xl-0">
+            <a href="{% url 'models_classic' %}" class="btn btn-lg btn-primary shadow-sm shadow-primary me-3 me-sm-4">
+              К моделям
+            </a>
+            <a href="{% url 'docs' %}" class="btn btn-lg btn-outline-secondary">
+              К справке
+            </a>
+          </div>
+        </div>
+        <!-- Parallax gfx -->
+        <div class="col-xl-7 col-md-6 d-md-flex justify-content-end">
+          <div class="parallax mx-auto ms-md-0 me-md-n5"
+               style="max-width: 675px; transform: translate3d(0px, 0px, 0px) rotate(0.0001deg); transform-style: preserve-3d; backface-visibility: hidden; pointer-events: none;">
+            <div class="parallax-layer zindex-2" data-depth="0.1"
+                 style="transform: translate3d(-6.7px, 5.2px, 0px); transform-style: preserve-3d; backface-visibility: hidden; position: relative; display: block; left: 0px; top: 0px;">
+              <img src="{% static 'icon.png' %}" alt="Card">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="row text-center justify-content-center pb-2 m-3">
+      <div class="col-4">
+        <img src="{% static 'images/01_Logo_HSE_full_rus_Pantone.png' %}" alt="НИУ ВШЭ" class="img-fluid">
+      </div>
+      <div class="col-4">
+        <img src="{% static 'images/hsb.png' %}" alt="НИУ ВШЭ" class="img-fluid">
+      </div>
+      <hr class="w-75 mt-4">
+    </div>
+
+  </div>
+
+
+  <style>
+      .step {
+          width: 50px;
+          height: 50px;
+      {#line-height: 50px;#} vertical-align: middle;
+          text-align: center;
+          border-radius: 50%;
+          font-size: 30px;
+          color: #fff;
+          background: #0c054f;
+      }
+  </style>
+
+  <div class="container">
+    <div class="row justify-content-around">
+      <div class="card text-center bg-dark text-light" style="width: 18rem;">
+        <div class="card-body">
+          <h3 class="card-title">Выбор</h3>
+          <p class="card-text">
+            Выберите модель или создайте свою
+          </p>
+        </div>
+      </div>
+      <div class="card text-center bg-dark text-light" style="width: 18rem;">
+        <div class="card-body">
+          <h3 class="card-title">Данные</h3>
+          <p class="card-text">
+            Укажите параметры, добавьте данные потребления
+          </p>
+        </div>
+      </div>
+      <div class="card text-center bg-dark text-light" style="width: 18rem;">
+        <div class="card-body">
+          <h3 class="card-title">Построение</h3>
+          <p class="card-text">
+            Постройте модель одним нажатием! Сохраните или скачайте результаты
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

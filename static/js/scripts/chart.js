@@ -35,8 +35,8 @@ function chartResetZoom(chart) {
 function updateChart(responseDict) {
     mainChart.data.labels = responseDict['labels']
     infoDiv.innerHTML = responseDict['info']
-    // btnDownloadChart.disabled = false
-    // btnResetZoom.disabled = false TODO
+    btnDownloadChart.disabled = false
+    btnResetZoom.disabled = false
     let balance_response = responseDict['balance']
     let income_order = responseDict['income_order']
     let outcome_order = responseDict['outcome_order']
@@ -88,7 +88,8 @@ const balanceLine = {
     pointRadius: 2,
     pointHoverRadius: 10,
     backgroundColor: 'rgba(133,192,238, 0.5)',
-    borderColor: 'rgb(133,192,238)',
+    borderColor: 'rgba(133,192,238, 0.5)',
+    // borderColor: 'rgb(133,192,238)',
 }
 const incomeOrderLine = {
     type: 'bar',
@@ -96,8 +97,11 @@ const incomeOrderLine = {
     backgroundColor: '#8bef8b',
     tooltip: {
         callbacks: {
-            beforeLabel: function (context) {
-                return `Приход №${incomeOrdersCount[context.dataIndex]}`
+            beforeLabel: (ctx) => {
+                return `Приход #${incomeOrdersCount[ctx.dataIndex]}`
+            },
+            label: (ctx) => {
+                return `Количество: ${ctx.formattedValue}`
             }
         }
     }
@@ -109,7 +113,10 @@ const outcomeOrderLine = {
     tooltip: {
         callbacks: {
             beforeLabel: function (context) {
-                return `Заявка №${outcomeOrdersCount[context.dataIndex]}`
+                return `Заявка #${outcomeOrdersCount[context.dataIndex]}`
+            },
+            label: (ctx) => {
+                return `Количество: ${ctx.formattedValue}`
             }
         }
     }
@@ -118,9 +125,23 @@ const consumptionLine = {
     label: 'Потребление',
     pointRadius: 0,
     backgroundColor: 'rgba(230,195,250,0.5)',
-    borderColor: 'rgb(230,195,250)',
+    borderColor: 'rgba(230,195,250,0.5)',
+    // borderColor: 'rgb(230,195,250)',
     stepped: 'middle',
 }
+
+const plugin = {
+    beforeDraw: (chart) => {
+        const {ctx} = chart;
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = 'rgba(215,212,255,0.1)';
+
+        ctx.fillRect(0, 0, chart.width, chart.height);
+        ctx.restore()
+    }
+}
+
 const chartCtx = document.getElementById('mainChart').getContext('2d');
 const mainChart = new Chart(chartCtx, {
     type: 'line',
@@ -143,6 +164,50 @@ const mainChart = new Chart(chartCtx, {
         },
         plugins: {
             zoom: zoomOptions,
-        }
-    }
+            legend: {
+                labels: {
+                    color: '#ffffff'
+                }
+            },
+            // TODO tooltip
+            // tooltip: {
+            //     callbacks: {
+            //         title: (ctx) => {
+            //             console.log(ctx)
+            //             return `День someday`
+            //         }
+            //     }
+            // }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: true,
+                    drawBorder: true,
+                    drawOnChartArea: true,
+                    drawTicks: true,
+                    lineWidth: 0.3,
+                    color: (ctx) => {
+                        return '#a1dac1'
+                    }
+                },
+
+            },
+            y: {
+                grid: {
+                    display: true,
+                    drawBorder: true,
+                    drawOnChartArea: true,
+                    drawTicks: true,
+                    lineWidth: 0.3,
+                    color: (ctx) => {
+                        return '#d4e7dd'
+                    }
+                },
+            }
+        },
+
+    },
+
+    plugins: [plugin]
 });

@@ -18,7 +18,7 @@ class DatasetForm(forms.Form):
     order_costs = forms.DecimalField(
         min_value=0,
         widget=forms.NumberInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'id': 'orderCosts',
             'placeholder': 'параметр A'
         }),
@@ -27,7 +27,7 @@ class DatasetForm(forms.Form):
     storage_costs = forms.DecimalField(
         min_value=0,
         widget=forms.NumberInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'id': 'storageCosts',
             'placeholder': 'параметр I'
         }),
@@ -37,7 +37,7 @@ class DatasetForm(forms.Form):
         min_value=0,
         widget=forms.NumberInput(attrs={
             'id': 'deliveryTime',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': 'в днях'
         }),
         label='Время доставки'
@@ -46,7 +46,7 @@ class DatasetForm(forms.Form):
         min_value=0,
         widget=forms.NumberInput(attrs={
             'id': 'delayTime',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': 'в днях'
         }),
         label='Время возможной задержки'
@@ -57,7 +57,7 @@ class DatasetForm(forms.Form):
         widget=forms.NumberInput(attrs={
             'id': 'delayProbability',
             'type': 'range',
-            'class': 'form-range',
+            'class': 'form-range bg-dark text-light',
             'value': 0,
             'step': 0.01
         }),
@@ -67,7 +67,7 @@ class DatasetForm(forms.Form):
     delay_days = forms.CharField(
         widget=forms.TextInput(attrs={
             'id': 'delayDays',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'pattern': '[0-9,]*',
             'autocomplete': 'off',
             'placeholder': 'через запятую',
@@ -78,7 +78,7 @@ class DatasetForm(forms.Form):
     initial_stock = forms.DecimalField(
         widget=forms.NumberInput(attrs={
             'id': 'initialStock',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': 'любое значение'
         }),
         label='Начальный запас',
@@ -88,7 +88,7 @@ class DatasetForm(forms.Form):
         min_value=0,
         widget=forms.NumberInput(attrs={
             'id': 'deficitLosses',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': '>=0'
         }),
         label='Потери от дефицита',
@@ -97,7 +97,7 @@ class DatasetForm(forms.Form):
     avg_daily_consumption = forms.DecimalField(
         widget=forms.NumberInput(attrs={
             'id': 'avgDailyConsumption',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': 'отгрузка'
         }),
         label='Среднесуточное потребление',
@@ -106,7 +106,7 @@ class DatasetForm(forms.Form):
     avg_daily_consumption_d = forms.DecimalField(
         widget=forms.NumberInput(attrs={
             'id': 'avgDailyConsumptionD',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': 'оприходование'
         }),
         label='Среднесуточное поступление',
@@ -115,7 +115,7 @@ class DatasetForm(forms.Form):
     consumption = forms.CharField(
         widget=forms.Textarea(attrs={
             'id': 'consumptionDataset',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'placeholder': '123.45\n67\n234.67'
         }),
         label='Потребление',
@@ -124,7 +124,7 @@ class DatasetForm(forms.Form):
     description = forms.CharField(
         widget=forms.Textarea(attrs={
             'id': 'description',
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'rows': 2,
         }),
         label='Описание',
@@ -133,7 +133,7 @@ class DatasetForm(forms.Form):
     is_public = forms.BooleanField(
         widget=forms.CheckboxInput(attrs={
             'id': 'isPublic',
-            'class': 'form-checkbox'
+            'class': 'form-checkbox bg-dark text-light'
         }),
         label='Публичный',
         required=False
@@ -164,7 +164,7 @@ class DatasetForm(forms.Form):
 class AlgorithmForm(forms.ModelForm):
     class Meta:
         _common_attrs = {
-            'class': 'form-control',
+            'class': 'form-control bg-dark text-light',
             'spellcheck': 'false',
             'rows': 2,
         }
