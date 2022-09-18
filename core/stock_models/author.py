@@ -4,22 +4,26 @@ from typing import List, Union
 import numpy as np
 import pandas as pd
 
-from ._formula_parser import execute
-from .custom_formulas import countifs, sumifs, filter_
+from .custom_formulas import countifs, filter_, length, sumifs, summa, get_slice, minimum, maximum
+from .interpreter.executor import new_interpreter
 
 _CONTEXT_FORMULAS = {
-    'sum': sum,
-    'mean': lambda i: np.mean(i),
-    'std': lambda i: np.std(i),
-    'abs': abs,
-    'sqrt': lambda i: np.sqrt(i),
-    'count': len,
-    'max': lambda i: max(i),
-    'min': lambda i: min(i),
-    'round': round,
-    'countifs': countifs,
-    'sumifs': sumifs,
-    'filter': filter_,
+    'SUM': summa,
+    'MEAN': lambda *args: np.mean(args),
+    'STD': lambda i: np.std(i),
+    'ABS': abs,
+    'SQRT': lambda i: np.sqrt(i),
+    'COUNT': length,
+    'MAX': maximum,
+    'MIN': minimum,
+    'ROUND': lambda i: round(i),
+    'COUNTIFS': countifs,
+    'SUMIFS': sumifs,
+    'FILTER': filter_,
+    'AND': lambda *args: all(args),
+    'OR': lambda *args: any(args),
+    'MOD': lambda i, j: i % j,
+    'SLICE': get_slice,
 }
 
 
@@ -45,7 +49,6 @@ def build_author_model(
     formula_point_refill = config.formula_point_refill
     formula_order_size = config.formula_order_size
     formula_score = config.formula_score
-
     period = len(consumption)
     outcome_order = np.zeros(period, dtype=float)  # заказ (ед)
     income_order = np.zeros(period, dtype=float)  # приход (ед)
@@ -53,7 +56,7 @@ def build_author_model(
     number_of_outcome_orders = 0  # количество невыполненных заявок
     delivery_number = 0
 
-    CONTEXT_CONSTANTS = {
+    context_constants = {
         'S': np.sum(config.consumption),
         'A': config.order_costs,
         'I': config.storage_costs,
@@ -61,6 +64,9 @@ def build_author_model(
         'Delay': config.delay_time,
         'Consumption': consumption.tolist(),
     }
+
+    interpreter_formula_refill = new_interpreter(formula_point_refill, {}, _CONTEXT_FORMULAS)
+    interpreter_formula_order_size = new_interpreter(formula_order_size, {}, _CONTEXT_FORMULAS)
 
     for i, el in enumerate(consumption):
         if i == 0:
@@ -73,16 +79,19 @@ def build_author_model(
 
         # update context
         context = {
-            **_CONTEXT_FORMULAS,
-            **CONTEXT_CONSTANTS,
+            **context_constants,
             'balance': balance[i],
             'out': number_of_outcome_orders,
             'day': i,
         }
+        interpreter_formula_refill.variables = context
         # если пора делать заявку
-        if execute(formula_point_refill, context):
+        if interpreter_formula_refill.execute():
             # делаем заказ
-            order_size = execute(formula_order_size, context)
+            interpreter_formula_order_size.variables = context
+            order_size = interpreter_formula_order_size.execute()
+            if order_size <= 0:
+                continue
             outcome_order[i] = order_size
             number_of_outcome_orders += 1
             delivery_number += 1
@@ -106,14 +115,15 @@ def build_author_model(
                     income_order[int(come_after)] = order_size
 
     context = {
-        **_CONTEXT_FORMULAS,
-        **CONTEXT_CONSTANTS,
+        **context_constants,
         'Fact': balance,
         'Income': income_order,
         'Outcome': outcome_order,
     }  # todo
-
-    score = execute(formula_score, context) if formula_score else None
+    score = None
+    if formula_score is not None:
+        interpreter_score = new_interpreter(formula_score, context, _CONTEXT_FORMULAS)
+        score = interpreter_score.execute()
     return ModelAuthor(
         config, consumption, balance, income_order, outcome_order, score
     )

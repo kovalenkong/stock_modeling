@@ -41,10 +41,14 @@ class UserSerializer(serializers.ModelSerializer):
 class DatasetListSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     parameters = serializers.JSONField()
+    row_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
         exclude = ('data',)
+
+    def get_row_count(self, instance: Dataset):
+        return len(instance.data.split('\n'))
 
 
 class DatasetDetailSerializer(serializers.ModelSerializer):

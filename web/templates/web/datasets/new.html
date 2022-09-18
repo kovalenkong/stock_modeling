@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container">
+  <div class="container pt-3">
     <form method="post">
-    {% csrf_token %}
+      {% csrf_token %}
       <div class="row">
         {% for field in form %}
           <div class="mb-3 col-md-{% if field.widget_type == 'textarea' %}12{% else %}6{% endif %}">
@@ -17,6 +17,7 @@
         {% endfor %}
       </div>
       <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+      <a role="button" class="btn btn-outline-warning" href="{% url 'datasets_list' %}">Отмена</a>
     </form>
 
   </div>

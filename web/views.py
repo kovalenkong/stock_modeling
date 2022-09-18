@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from markdown.extensions import fenced_code, tables
 
 from core.models import Algorithm, Dataset
-from core.stock_models import SHORT_DOC, LONG_DOC
+from core.stock_models import LONG_DOC, SHORT_DOC
 from web.forms import AlgorithmForm, ClassicModelForm, DatasetForm
 
 """

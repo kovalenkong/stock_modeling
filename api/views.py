@@ -1,13 +1,10 @@
 import collections
-import json
 
 import numpy as np
-import pandas as pd
 from django.db import models
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import api_view, parser_classes
-from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -18,6 +15,7 @@ from core.stock_models.builders import (build_fiv, build_fixed_period,
                                         build_frz, build_minimum_maximum)
 from core.stock_models.config import MODEL_TYPE, Config
 from core.stock_models.errors import ConfigError
+from .business_logic import prepare_response
 
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AlgorithmSerializer, AuthorModelSerializer,
@@ -43,9 +41,10 @@ def build_classic_model(request):
 
     data: collections.OrderedDict = serializer.validated_data
 
-    delay_probability = data.get('delay_probability')
+    delay_probability = data.get('delay_probability', 0)
     delay_days = data.get('delay_days')
-    delay = delay_probability if delay_probability > 0 else delay_days
+    delay = delay_days or delay_probability
+
     model_type = data['model_type']
     try:
         config = Config(
@@ -68,30 +67,7 @@ def build_classic_model(request):
     except Exception as e:
         return Response(data={'error': str(e)}, status=500)
 
-    df_info = pd.DataFrame.from_dict(model.full_info(), orient='index', columns=['Значение']).round(3).fillna('-')
-
-    res = []
-    labels = list(range(len(model.consumption)))
-    for idx, (i, j) in enumerate(zip(model.balance_start, model.income_order)):
-        if j == 0:
-            res.append({'x': idx, 'y': i})
-        else:
-            res.extend([{'x': idx, 'y': i - j}, {'x': idx, 'y': i}])
-
-    response = {
-        'labels': labels,
-        'balance': res,
-        'income_order': model.income_order.tolist(),
-        'outcome_order': model.outcome_order.tolist(),
-        'consumption': model.consumption.tolist(),
-        'info': df_info.to_html(
-            classes='table table-striped table-hover table-sm table-dark text-light',
-            border=0,
-            float_format=lambda i: '{:,.3f}'.format(i),
-        ),
-    }
-
-    return Response(response)
+    return Response(prepare_response(model))
 
 
 @csrf_exempt
@@ -125,30 +101,7 @@ def build_author_model(request):
         model = author.build_author_model(config)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
-
-    df_info = pd.DataFrame.from_dict(model.full_info(), orient='index', columns=['Значение']).round(3).fillna('-')
-
-    res = []
-    labels = list(range(len(model.consumption)))
-    for idx, (i, j) in enumerate(zip(model.balance_start, model.income_order)):
-        if j == 0:
-            res.append({'x': idx, 'y': i})
-        else:
-            res.extend([{'x': idx, 'y': i - j}, {'x': idx, 'y': i}])
-
-    response = {
-        'labels': labels,
-        'balance': res,
-        'income_order': model.income_order.tolist(),
-        'outcome_order': model.outcome_order.tolist(),
-        'consumption': model.consumption.tolist(),
-        'info': df_info.to_html(
-            classes='table table-striped table-hover table-sm table-dark text-light',
-            border=0,
-            float_format=lambda i: '{:,.3f}'.format(i),
-        ),
-    }
-    return Response(response)
+    return Response(prepare_response(model))
 
 
 class DatasetView(viewsets.ModelViewSet):

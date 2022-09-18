@@ -7,16 +7,17 @@ modalListDatasets.addEventListener('shown.bs.modal', () => {
         listDatasetsTableBody.textContent = ''
         let response = JSON.parse(xhr.response)
         for (let row of response) {
+            console.log(row)
             let el = document.createElement('tr')
 
             let id = document.createElement('td')
             id.textContent = row['id']
-            let dtCreated = document.createElement('td')
-            dtCreated.textContent = row['dt_created']
             let dtEdited = document.createElement('td')
             dtEdited.textContent = row['dt_edited']
             let author = document.createElement('td')
             author.textContent = row['author']['email']
+            let rowCount = document.createElement('td')
+            rowCount.textContent = row['row_count']
 
             let d = document.createElement('div')
             d.className = 'btn-group'
@@ -49,46 +50,67 @@ modalListDatasets.addEventListener('shown.bs.modal', () => {
             }
             let btnChooseDatasetWithParameters = document.createElement('button')
             btnChooseDatasetWithParameters.textContent = 'Потребление и параметры'
-            btnChooseDatasetWithParameters.className = 'dropdown-item disabled'
+            btnChooseDatasetWithParameters.className = 'dropdown-item'
             btnChooseDatasetWithParameters.onclick = e => {
                 let xhr = new XMLHttpRequest()
                 xhr.onload = () => {
                     let resp = JSON.parse(xhr.response)
                     let params = JSON.parse(resp.parameters)
-                    // TODO
                     console.log(params)
                     if (params['avg_daily_consumption'] !== null) {
                         formSInput.value = params['avg_daily_consumption']
+                    } else {
+                        formSInput.value = ''
                     }
                     if (params['avg_daily_consumption_d'] !== null) {
                         formDInput.value = params['avg_daily_consumption_d']
+                    } else {
+                        formDInput.value = ''
                     }
                     if (params['deficit_losses'] !== null) {
                         formDeficitLoss.value = params['deficit_losses']
+                    } else {
+                        formDeficitLoss.value = ''
                     }
                     if (params['delay_days'] !== null) {
                         formDelayDays.value = params['delay_days']
+                    } else {
+                        formDelayDays.value = ''
                     }
                     if (resp['data'] !== null) {
                         formConsumption.value = resp['data']
+                    } else {
+                        formConsumption.value = ''
                     }
                     if (params['delay_probability'] !== null) {
                         formDelayProbability.value = params['delay_probability']
+                    } else {
+                        formDelayProbability.value = ''
                     }
                     if (params['delay_time'] !== null) {
                         formDelayTime.value = params['delay_time']
+                    } else {
+                        formDelayTime.value = ''
                     }
                     if (params['delivery_time'] !== null) {
                         formDeliveryTime.value = params['delivery_time']
+                    } else {
+                        formDeliveryTime.value = ''
                     }
                     if (params['initial_stock'] !== null) {
                         formInitialStock.value = params['initial_stock']
+                    } else {
+                        formInitialStock.value = ''
                     }
                     if (params['order_costs'] !== null) {
                         formOrderCosts.value = params['order_costs']
+                    } else {
+                        formOrderCosts.value = ''
                     }
                     if (params['storage_costs'] !== null) {
                         formStorageCosts.value = params['storage_costs']
+                    } else {
+                        formStorageCosts.value = ''
                     }
                     $('#listDatasets').modal('hide')
                 }
@@ -105,7 +127,7 @@ modalListDatasets.addEventListener('shown.bs.modal', () => {
             tdAction.appendChild(d)
 
             el.appendChild(id)
-            el.appendChild(dtCreated)
+            el.appendChild(rowCount)
             el.appendChild(dtEdited)
             el.appendChild(author)
             el.appendChild(tdAction)

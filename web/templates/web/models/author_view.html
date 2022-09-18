@@ -37,6 +37,7 @@
   <script>
       // form elements
       const form = document.getElementsByTagName('form')[0]
+      const formAlgorithmSaveModal = document.getElementById('formAlgorithmSaveModal')
 
       const formFormulaPointRefill = document.getElementById('formulaPointRefill')
       const formFormulaOrderSize = document.getElementById('formulaOrderSize')
@@ -66,9 +67,10 @@
           0,
           [
               ['balance < 1000', 2000],
-              ['day % 5 == 0', 4000],
+              ['MOD(day;5) = 0', 4000],
               ['balance <= MEAN(Consumption) * (Delivery + Delay)', 5000],
-              ['(day % 3 == 0) OR (balance < 1000)', 5000],
+              ['OR(MOD(day;3)=0; balance<1000)', 5000],
+              ['AND(balance<1000;out=0)', 2500],
           ],
           5
       )
@@ -76,9 +78,9 @@
           formFormulaOrderSize,
           0,
           [
-              ['ABS(balance) * 3', 2000],
-              ['MEAN(Consumption) * (Delivery + Delay)', 3000],
-              ['Consumption[day-(Delivery+Delay):day]', 5000],
+              ['ABS(balance)*3', 2000],
+              ['MEAN(Consumption) * (Delivery+Delay)', 3000],
+              ['SUM(SLICE(Consumption; day-(Delivery+Delay); day))', 5000],
           ],
           5
       )
@@ -165,7 +167,6 @@
           formDelayProbability.disabled = formDelayDays.value !== '';
       }
 
-
       // работа с сохранением алгоритма
       let algorithmID = '{{ form_algo.instance.id|default:"" }}'
 
@@ -179,6 +180,9 @@
       btnSaveAlgorithm.onclick = e => {
           e.preventDefault()
           if (!checkAlgorithmFormValid()) {
+              return
+          }
+          if (!checkAlgorithmSaveUpdateModalFormValid()) {
               return
           }
           if (algorithmID === '') {
@@ -199,6 +203,13 @@
                   el.reportValidity()
                   return false
               }
+          }
+          return true
+      }
+      function checkAlgorithmSaveUpdateModalFormValid() {
+          if (!formAlgorithmSaveModal.checkValidity()) {
+              formAlgorithmSaveModal.reportValidity()
+              return false
           }
           return true
       }
@@ -244,7 +255,5 @@
               description: formFormulaDescription.value,
           })
       }
-
-
   </script>
 {% endblock %}

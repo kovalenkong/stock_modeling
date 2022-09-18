@@ -58,16 +58,16 @@
       </div>
       <div class="modal-body">
         {% with form_algo.instance as instance %}
-          <form>
+          <form id="formAlgorithmSaveModal">
             <div class="mb-3">
               <label for="formFormulaDescription" class="col-form-label">Описание:</label>
               <textarea class="form-control bg-dark text-light"
-                        id="formFormulaDescription">{{ instance.description|default_if_none:"" }}</textarea>
+                        id="formFormulaDescription" required>{{ instance.description|default_if_none:"" }}</textarea>
             </div>
             <div class="mb-3">
               <input type="checkbox" class="form-check-input" id="formFormulaIsPublic"
                      {% if instance.is_public %}checked{% endif %}>
-              <label for="formFormulaIsPublic" class="col-form-label orm-check-input-label">Публичная</label>
+              <label for="formFormulaIsPublic" class="form-check-label">Публичная</label>
             </div>
           </form>
         {% endwith %}
