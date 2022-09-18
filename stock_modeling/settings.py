@@ -1,22 +1,19 @@
+import os
+from distutils.util import strtobool
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 import rest_framework.permissions
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-ibw((4o0#@awscq%@_c2^3ov7g361k^)1op)zls_(+$58cco4+'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = strtobool(os.getenv('DEBUG', 'false'))
 
-ALLOWED_HOSTS = []
-
-# Application definition
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
 INSTALLED_APPS = [
     'core',
