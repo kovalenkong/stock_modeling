@@ -112,7 +112,9 @@ REST_FRAMEWORK = {
     ]
 }
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+else:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',
+    ]
