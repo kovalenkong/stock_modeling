@@ -12,81 +12,83 @@
   {% csrf_token %}
   <div class="container pt-3">
     {% include 'web/includes/search_form.html' %}
-    <table class="table table-striped table-dark">
-      <thead>
-      <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Формула точки пополнения</th>
-        <th scope="col">Формула размера заказа</th>
-        <th scope="col">Описание</th>
-        <th scope="col">Автор</th>
-        <th scope="col">Создан</th>
-        <th scope="col">Обновлен</th>
-        <th scope="col">Публичная</th>
-        <th scope="col">Действие</th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for row in algo %}
-        <tr id="table-row-{{ row.pk }}">
-          <th scope="row">{{ row.id }}</th>
-          {% if row.formula_point_refill %}
-            {% if row.formula_point_refill|length > 25 %}
-              <td data-bs-toggle="tooltip" data-bs-placement="right"
-                  data-bs-title="{{ row.formula_point_refill|truncatechars:"100"|default:"-" }}">{{ row.formula_point_refill|truncatechars:"25"|default:"-" }}</td>
-            {% else %}
-              <td>{{ row.formula_point_refill }}</td>
-            {% endif %}
-          {% else %}
-            <td>-</td>
-          {% endif %}
-        {% if row.formula_order_size %}
-            {% if row.formula_order_size|length > 25 %}
-              <td data-bs-toggle="tooltip" data-bs-placement="right"
-                  data-bs-title="{{ row.formula_order_size|truncatechars:"100"|default:"-" }}">{{ row.formula_order_size|truncatechars:"25"|default:"-" }}</td>
-            {% else %}
-              <td>{{ row.formula_order_size }}</td>
-            {% endif %}
-          {% else %}
-            <td>-</td>
-          {% endif %}
-          {% if row.description %}
-            {% if row.description|length > 25 %}
-              <td data-bs-toggle="tooltip" data-bs-placement="right"
-                  data-bs-title="{{ row.description|truncatechars:"100"|default:"-" }}">{{ row.description|truncatechars:"25"|default:"-" }}</td>
-            {% else %}
-              <td>{{ row.description }}</td>
-            {% endif %}
-          {% else %}
-            <td>-</td>
-          {% endif %}
-          <td>{{ row.author.email }}</td>
-          <td>{{ row.dt_created|date:"d/m/Y G:i:s" }}</td>
-          <td>{{ row.dt_edited|date:"d/m/Y G:i:s" }}</td>
-          <td>{% if row.is_public %}<i class="bi bi-check-circle-fill link-success"></i>{% else %}
-            <i class="bi bi-x-circle link-danger"></i>{% endif %}</td>
-          <td>
-            <div class="dropdown-center">
-              <button class="btn dropdown-toggle text-light" type="button" data-bs-toggle="dropdown"
-                      aria-expanded="false">
-                Действие
-              </button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{% url 'models_author_view' pk=row.pk %}">Попробовать</a></li>
-                {% if request.user.is_authenticated and row.author == request.user %}
-                  <li>
-                    <button class="dropdown-item link-danger" onclick="openModalDelete({{ row.pk }})">Удалить</button>
-                  </li>
-                {% endif %}
-              </ul>
-            </div>
-          </td>
+    <div class="table-responsive">
+      <table class="table table-striped table-dark">
+        <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Формула точки пополнения</th>
+          <th scope="col">Формула размера заказа</th>
+          <th scope="col">Описание</th>
+          <th scope="col">Автор</th>
+          <th scope="col">Создан</th>
+          <th scope="col">Обновлен</th>
+          <th scope="col">Публичная</th>
+          <th scope="col">Действие</th>
         </tr>
-      {% empty %}
-        <p>Упс! Ничего не нашлось :(</p>
-      {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+        {% for row in algo %}
+          <tr id="table-row-{{ row.pk }}">
+            <th scope="row">{{ row.id }}</th>
+            {% if row.formula_point_refill %}
+              {% if row.formula_point_refill|length > 25 %}
+                <td data-bs-toggle="tooltip" data-bs-placement="right"
+                    data-bs-title="{{ row.formula_point_refill|truncatechars:"100"|default:"-" }}">{{ row.formula_point_refill|truncatechars:"25"|default:"-" }}</td>
+              {% else %}
+                <td>{{ row.formula_point_refill }}</td>
+              {% endif %}
+            {% else %}
+              <td>-</td>
+            {% endif %}
+            {% if row.formula_order_size %}
+              {% if row.formula_order_size|length > 25 %}
+                <td data-bs-toggle="tooltip" data-bs-placement="right"
+                    data-bs-title="{{ row.formula_order_size|truncatechars:"100"|default:"-" }}">{{ row.formula_order_size|truncatechars:"25"|default:"-" }}</td>
+              {% else %}
+                <td>{{ row.formula_order_size }}</td>
+              {% endif %}
+            {% else %}
+              <td>-</td>
+            {% endif %}
+            {% if row.description %}
+              {% if row.description|length > 25 %}
+                <td data-bs-toggle="tooltip" data-bs-placement="right"
+                    data-bs-title="{{ row.description|truncatechars:"100"|default:"-" }}">{{ row.description|truncatechars:"25"|default:"-" }}</td>
+              {% else %}
+                <td>{{ row.description }}</td>
+              {% endif %}
+            {% else %}
+              <td>-</td>
+            {% endif %}
+            <td>{{ row.author.email }}</td>
+            <td>{{ row.dt_created|date:"d/m/Y G:i:s" }}</td>
+            <td>{{ row.dt_edited|date:"d/m/Y G:i:s" }}</td>
+            <td>{% if row.is_public %}<i class="bi bi-check-circle-fill link-success"></i>{% else %}
+              <i class="bi bi-x-circle link-danger"></i>{% endif %}</td>
+            <td>
+              <div class="dropdown-center">
+                <button class="btn dropdown-toggle text-light" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                  Действие
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="{% url 'models_author_view' pk=row.pk %}">Попробовать</a></li>
+                  {% if request.user.is_authenticated and row.author == request.user %}
+                    <li>
+                      <button class="dropdown-item link-danger" onclick="openModalDelete({{ row.pk }})">Удалить</button>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <p>Упс! Ничего не нашлось :(</p>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Modal -->
