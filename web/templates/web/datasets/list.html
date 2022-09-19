@@ -20,6 +20,7 @@
         <th scope="col">ID</th>
         <th scope="col">Автор</th>
         <th scope="col">Описание</th>
+        <th scope="col">Строк</th>
         <th scope="col">Публичный</th>
         <th scope="col">Создан</th>
         <th scope="col">Обновлен</th>
@@ -42,6 +43,7 @@
             {% else %}
               <td>-</td>
             {% endif %}
+            <td>{{ row.data.splitlines|length }}</td>
             <td>{% if row.is_public %}<i class="bi bi-check-circle-fill link-success"></i>{% else %}
               <i class="bi bi-x-circle link-danger"></i>{% endif %}</td>
             <td>{{ row.dt_created|date:"d/m/Y G:i:s" }}</td>
