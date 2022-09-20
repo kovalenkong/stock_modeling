@@ -180,7 +180,7 @@ class AlgorithmForm(forms.ModelForm):
             'formula_score': forms.Textarea(attrs={'id': 'formulaScore', **_common_attrs}),
         }
         labels = {
-            'formula_point_refill': 'Формула нахождения точки пополнения заказа',
+            'formula_point_refill': 'Формула нахождения точки размещения заказа',
             'formula_order_size': 'Формула размера заказа',
             'formula_score': 'Оценивающая функция',
         }
