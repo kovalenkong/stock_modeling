@@ -2,6 +2,7 @@ import os
 from distutils.util import strtobool
 from pathlib import Path
 
+import django.template.context_processors
 import rest_framework.permissions
 from dotenv import load_dotenv
 
