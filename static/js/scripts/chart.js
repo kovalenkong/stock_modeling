@@ -14,7 +14,7 @@ let incomeOrdersCount
 btnDownloadChart.onclick = () => chartDownloadImage(mainChart)
 btnClearForm.onclick = e => {
     e.preventDefault()
-    formClear(form)
+    // formClear(form)  // TODO
     changeTextLabelForDelayProbability()
 }
 // btn chart zoom action
